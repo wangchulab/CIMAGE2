@@ -1,0 +1,21 @@
+#! /bin/bash
+if [ $1 == SILAC ];then
+	shift;
+	cimage_mascot_SILAC $@
+	exit
+fi
+
+if [ $1 == 1mod ];then
+	shift;
+	cimage_mascot_new $@ 
+	exit
+fi
+
+if [ $1 == 2mod ];then
+	shift;
+	cimage_mascot_2mod $@
+	exit
+fi
+
+exit 0;
+	
