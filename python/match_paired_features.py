@@ -99,11 +99,47 @@ while p1 < nlast:
         log_fc = log(sorted_features[p0].intApex/sorted_features[p1].intApex)
         #print log_fc
         if fabs(log_fc) < 0.5:
+            #check rt range
+            rt0_s = sorted_features[p0].rtStart
+            rt0_e = sorted_features[p0].rtEnd
+            rt1_s = sorted_features[p1].rtStart
+            rt1_e = sorted_features[p1].rtEnd
+            status = True
+            r = 0
+            if rt0_s <= rt1_s and rt0_e >= rt1_e:
+                #print "1 in 0"
+                statuts = True
+                r = 1.0
+            elif rt1_s <= rt0_s and rt1_e >= rt0_e:
+                #print "0 in 1"
+                status = True
+                r = 1.0
+            elif rt0_e < rt1_s:
+                status = False
+            elif rt0_s > rt1_e:
+                status = False
+            elif rt0_s < rt1_s:
+                inter = rt0_e - rt1_s
+                r0 = inter / (rt0_e - rt0_s)
+                r1 = inter / (rt1_e - rt1_s)
+                r = max(r0, r1)
+                if r > 0.2: status = True
+            elif rt1_s < rt0_s:
+                inter = rt1_e - rt0_s
+                r0 = inter / (rt0_e - rt0_s)
+                r1 = inter / (rt1_e - rt1_s)
+                r = max(r0, r1)
+                if r > 0.2: status = True
+            else:
+                print "FAIL"
+                assert(False)
+
             #match!
-            print "match0:", charge, sorted_features[p0].output()
-            print "match1:", charge, sorted_features[p1].output()
-            print "dt:", delta_rt, "log_fc:", log_fc, "dm:", ((mz1-mz0)-shift)/shift
-            print "--"
+            if status:
+                print "match0:", charge, sorted_features[p0].output()
+                print "match1:", charge, sorted_features[p1].output()
+                print "dt:", delta_rt, "log_fc:", log_fc, "dm:", ((mz1-mz0)-shift)/shift
+                print "--", rt0_s, rt0_e, rt1_s, rt1_e, r
     
     #do the smallest move
     if p0 >= p1-1: p1 += 1
