@@ -49,6 +49,7 @@ table <- as.list(dirs)
 r2.cutoff <- 0.7
 
 ## read in the first table and figure out headers
+paste(dirs[1],input.file,sep="")
 tmp.table <- read.table(paste(dirs[1],input.file,sep=""),header=T,sep="\t",quote="",comment.char="")
 tmp.names <- names(tmp.table)
 ## to rename columns
