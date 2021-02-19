@@ -96,15 +96,18 @@ def mark_seq(uAA, seq, dAA, markers):
         ans = uAA + "." + seq + "." + dAA
     else:
         #all_seq = uAA + "." + seq[:ndx+1] + "*" + seq[ndx+1:] + "." + dAA
+        markers = sorted(markers, key=lambda x:x[1])
         ans = uAA + "."
         prev = 0
         for marker, ndx in markers:
             ans = ans + seq[prev:ndx+1] + marker
-            prev = ndx+1
+            prev = ndx + 1
+            print ans, prev
         ans = ans + seq[prev:] + "." + dAA
     return ans
 
 print "Parsing pepXML files..."
+print 
 for tag in [ "light", "heavy" ]:
     #build mod list
     std_AA = [] #mark AA that's modified but not marked (SILAC)
@@ -145,24 +148,23 @@ for tag in [ "light", "heavy" ]:
     tags = {}
     for n, e in enumerate(elems):
         tags[e] = n
-    #print tags
-    #assert(0)
     for l in lines[1:]:
         elems = l.strip().split('\t')
-
+        
         pro = elems[tags["Protein"]]
         disc = elems[tags["Protein Description"]].strip()
-        disc = disc.replace("'", "", 10)
         full_seq = db_seq[pro]
         seq = elems[tags["Peptide"]]
         pro = pro + "\t" + disc
         #locate
         loc = full_seq.find(seq)
+        #print pro, seq, loc
+        #print full_seq
         uAA = '-'
         dAA = '-'
         if loc > 0: uAA = full_seq[loc-1]
         if loc + len(seq) < len(full_seq): dAA = full_seq[loc+len(seq)]
-        #print uAA +'.'+seq+'.'+dAA
+        print uAA +'.'+seq+'.'+dAA
         #assert(0)
 
         spects = elems[tags["Spectrum"]].split('.')
@@ -182,28 +184,23 @@ for tag in [ "light", "heavy" ]:
         fn_ndx = ts[-1]
 
         rt = float(elems[tags["Retention"]])
-        #ori_dM = float(elems[tags["Original Delta Mass"]])
-        #adj_dM = float(elems[tags["Adjusted Delta Mass"]])
+        ori_dM = float(elems[tags["Original Delta Mass"]])
+        adj_dM = float(elems[tags["Adjusted Delta Mass"]])
 
         current_label = None
         nterm_marker = "-"
         markers = []
-
-        #debug
-        print pro, seq, loc
-        print pep_mass, uAA, dAA, com_fn, fn_ndx, rt, charge
-
         #check mod
         mods = elems[tags["Assigned Modifications"]]
         if len(mods)>1:
-            mods = mods.split(',')
+            mods = [m.strip() for m in mods.split(',')]
         else:
             mods = []
+        print mods
         for assigned_mod in mods:
-            assigned_mod = assigned_mod.strip()
             tmps = assigned_mod[:-1].split('(')
             posA = tmps[0].strip()
-            print assigned_mod, posA
+            print "DB:", assigned_mod, posA
             if posA != "N-term":
                 mod_mass = float(tmps[1])
                 ndx = int(posA[:-1])-1
@@ -213,16 +210,20 @@ for tag in [ "light", "heavy" ]:
                 for m in mod_list:
                     if m[0] == seq[ndx] and fabs(diff_mass-m[1]) <= mass_tol: #AA
                         current_label = tag
-                        if m[2]!="-": markers.append((m[2],ndx))
+                        if m[2]!="-": markers.append((m[2], ndx))
                 #check normal mod
                 for m in norm_labels:
                     if m[0] == seq[ndx] and fabs(diff_mass-m[1]) <= mass_tol: #AA
-                        if m[2]!="-": markers.append((m[2],ndx))
+                        if m[2]!="-": markers.append((m[2], ndx))
             else:
                 #check nterm
-                mod_nterm_mass = 0.0
+                mod_nterm_mass = float(tmps[1])
+                diff_mass = mod_nterm_mass
+                for m in nterm_labels:
+                    if m[0] == 'n' and fabs(diff_mass-m[1]) <= mass_tol: #nter
+                        current_label = tag
+                        nterm_marker = m[2]
 
-        print current_label
         #after check
         if current_label == None and len(std_AA)>0:
             for aa in std_AA:
@@ -239,14 +240,17 @@ for tag in [ "light", "heavy" ]:
                 ipi_lst[pro] = ipi_lst[pro]+1
             gene = pro.split()[0].split('|')[1]
             if pro[:7] == "Reverse": gene = "Reverse_" + gene
+            print "seq:", seq
+            print "marks:", markers
             all_seq = mark_seq(uAA, seq, dAA, markers)
+            print "result:", all_seq
             if nterm_marker!="-":
                 all_seq = all_seq[:2] + nterm_marker + all_seq[2:]
             scan_key = gene + ":" + all_seq + ":" + str(charge) + ":" + fn_ndx
             scan_lst.append(scan_key + " " + com_fn + " " + str(scan_id) + " " + current_label + "\n")
             cross_tab[scan_key].append((mass, scan_id, score))
-
-print "STAT:", len(ipi_lst), len(scan_lst)
+    print "Done!"
+    print
 
 #output
 def get_symbol(disc):
@@ -328,3 +332,4 @@ for scan_core in cross_tab.keys():
     id_scan = rank[-1][1]
     crossout.write(scan_core+" "+str(neutral_mass)+" "+str(id_scan)+"\n")
 crossout.close()
+
