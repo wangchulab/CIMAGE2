@@ -98,7 +98,7 @@ while p1 < nlast:
     if delta_rt < rt_gap:
         log_fc = log(sorted_features[p0].intApex/sorted_features[p1].intApex)
         #print log_fc
-        if fabs(log_fc) < 0.5:
+        if fabs(log_fc) < 4.0:
             #check rt range
             rt0_s = sorted_features[p0].rtStart
             rt0_e = sorted_features[p0].rtEnd

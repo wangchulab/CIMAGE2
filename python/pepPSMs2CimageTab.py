@@ -16,7 +16,7 @@ mass_norm_AA = {
 "P" : 97.05276,
 "V" : 99.06841,
 "T" :101.04768,
-"C" :103.00918, #+57.021464
+"C" :160.03064, #103.00918+57.021464=160.03064
 "L" :113.08406,
 "I" :113.08406,
 "N" :114.04293,
@@ -184,8 +184,8 @@ for tag in [ "light", "heavy" ]:
         fn_ndx = ts[-1]
 
         rt = float(elems[tags["Retention"]])
-        ori_dM = float(elems[tags["Original Delta Mass"]])
-        adj_dM = float(elems[tags["Adjusted Delta Mass"]])
+        #ori_dM = float(elems[tags["Original Delta Mass"]])
+        #adj_dM = float(elems[tags["Adjusted Delta Mass"]])
 
         current_label = None
         nterm_marker = "-"

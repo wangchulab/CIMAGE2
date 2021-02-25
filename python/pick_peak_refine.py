@@ -50,8 +50,8 @@ if len(sys.argv) >= 3:
 
 sortm = sorted(diffm)
 ndat = len(sortm)
-nmid = 5
-nwin = 11
+nmid = 4
+nwin = 9
 dtol = 0.05
 
 def get_loc( query_mass ):
