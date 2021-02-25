@@ -37,14 +37,16 @@ def check_chromatograms_corr( intensL, intensH ):
     Ls = [0.0]
     Hs = [0.0]
     for l, h in zip(intensL[1], intensH[1]):
-        if l+h > 0.1:
+        if l+h > 0.01:
             Ls.append(l)
             Hs.append(h)
 
     Np = len(Ls)
     if Np > max_Np:
         corr, _ = pearsonr(Ls, Hs)
-        ratio = np.sum(Ls) / np.sum(Hs)
+        ratio = np.sum(Ls)+0.01 / np.sum(Hs)+0.01
+        if ratio > 100.0: ratio = 100.0
+        if ratio < 0.01: ratio = 0.01
     else:
         corr = 0.0
         ratio = 0.0
