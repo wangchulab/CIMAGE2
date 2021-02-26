@@ -1,5 +1,5 @@
 # CIMAGE 2.0
-Lite version of CIMAGE, scripts for quantification only. (no web server)
+Release version of CIMAGE, scripts for quantification only. (no web server)
 
 Contact: chuwang@pku.edu.cn or wendao@pku.edu.cn
 
