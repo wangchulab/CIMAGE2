@@ -9,8 +9,9 @@ from math import log, fabs
 tol = 0.001
 dM0 = 1.003355
 rt_gap = 0.2 #merge
-max_Np = 4
-max_R2 = 0.6
+max_Np = 5 #4 5
+#max_R2 = 0.5
+A = 10.0
 charges = [ 2, 3, 4, 5, 6 ]
 
 class paired_feats:
@@ -30,8 +31,8 @@ class paired_feats:
         self.Np = 0
 
     def output(self):
-        return "MZ: %6.4f, charge: %d, L: %6.4f, H: %6.4f, RT: %6.4f, R: %6.4f, DB:( %3.2f %3.2f %d )" \
-        % ( self.mz, self.charge, self.mzLApex, self.mzHApex, self.rtApex*60.0, self.intR, self.corr, self.intApex, self.Np )
+        return "MZ: %6.4f, charge: %d, L: %6.4f, H: %6.4f, RT: %6.4f, R: %6.4f, DB:( %3.2f %3.2f %d ), RT( %4.3f %4.3f )" \
+        % ( self.mz, self.charge, self.mzLApex, self.mzHApex, self.rtApex*60.0, self.intR, self.corr, self.intApex, self.Np, self.rtStart*60.0, self.rtEnd*60.0 )
 
 def check_chromatograms_corr( intensL, intensH ):
     Ls = [0.0]
@@ -72,6 +73,9 @@ def merge_pairs( closed_pairs ):
 
         #print delta_rt
         if delta_rt < rt_gap:
+            #######
+            #Merge!
+            #######
             #print("merge!")
             merged_pairs[-1].rtStart = min(rt0_s, rt1_s)
             merged_pairs[-1].rtEnd = max(rt1_e, rt1_e)
@@ -84,6 +88,9 @@ def merge_pairs( closed_pairs ):
             if merged_pairs[-1].intApex < p.intApex:
                 merged_pairs[-1].intApex = p.intApex
                 merged_pairs[-1].rtApex = p.rtApex
+                merged_pairs[-1].mz = p.mz
+                merged_pairs[-1].mzLApex = p.mzLApex
+                merged_pairs[-1].mzHApex = p.mzHApex
         else:
             #print(delta_rt)
             merged_pairs.append(p)
@@ -120,7 +127,8 @@ def main():
         intApex = float(es[tags['intensityApex']])
         intSum = float(es[tags['intensitySum']])
 
-        mz0 = mzApex
+        mz0 = mz #Apex
+        # p -- 0 -- q
         mz_p = mz0 - shift0 / charge
         mz_q = mz0 + shift0 / charge
         rt_range = rob.FloatVector([rtStart*60.0, rtEnd*60.0])
@@ -138,12 +146,14 @@ def main():
         scan_q, intens_q = EIC_q.items()
 
         corr1, r1, Np1 = check_chromatograms_corr( intens_p, intens0 )
-        if corr1 > max_R2:
+        #print( corr1, r1, Np1 )
+        #if corr1 > max_R2:
+        if corr1 > -Np1/A+4.0/A+0.95:
             #print(corr1, r1)
             p = paired_feats()
-            p.mz = mz
-            p.mzLApex = mz_p
-            p.mzHApex = mz0
+            p.mz = mz_p #mz
+            p.mzLApex = mzApex - shift0/charge #mz_p
+            p.mzHApex = mzApex #mz0
             p.rtStart = rtStart
             p.rtEnd = rtEnd
             p.rtApex = rtApex
@@ -157,12 +167,14 @@ def main():
             #print(p.output())
 
         corr2, r2, Np2 = check_chromatograms_corr( intens0, intens_q )
-        if corr2 > max_R2:
+        #print( corr2, r2, Np2 )
+        #if corr2 > max_R2:
+        if corr2 > -Np2/A+4.0/A+0.95:
             #print(corr2, r2)
             p = paired_feats()
-            p.mz = mz
-            p.mzLApex = mz0
-            p.mzHApex = mz_q
+            p.mz = mz0 #mz
+            p.mzLApex = mzApex #mz0
+            p.mzHApex = mzApex + shift0/charge #mz_q
             p.rtStart = rtStart
             p.rtEnd = rtEnd
             p.rtApex = rtApex
@@ -179,7 +191,7 @@ def main():
     for c in charges:
         #print("charge:", c, "Npair:", len(pairs[c]))
         closed_pairs = []
-        sorted_pairs = sorted(pairs[c], key=lambda x: x.mzLApex)
+        sorted_pairs = sorted(pairs[c], key=lambda x: x.mz) #LApex
         nlast = len(sorted_pairs)
         if nlast == 0: continue
         p0 = 0
@@ -187,8 +199,8 @@ def main():
         closed_pairs.append(sorted_pairs[p0])
 
         while p1 < nlast:
-            mz0 = sorted_pairs[p0].mzLApex
-            mz1 = sorted_pairs[p1].mzLApex
+            mz0 = sorted_pairs[p0].mz #LApex
+            mz1 = sorted_pairs[p1].mz #LApex
             mz_tol = tol
             if mz1 - mz0 > mz_tol:
                 merged_pairs = merge_pairs(closed_pairs)
