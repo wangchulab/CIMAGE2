@@ -1,7 +1,7 @@
 # CIMAGE 2.0
 Release version of CIMAGE, scripts for quantification only. (no web server)
 
-Contact: chuwang@pku.edu.cn or wendao@pku.edu.cn
+Contact: chuwang@pku.edu.cn jinjungao@uchicago.edu or wendao@pku.edu.cn
 
 ## Requirements
 
