@@ -43,7 +43,7 @@ B. Before CIMAGE quantification, database search should be performed first and t
 
 ### Analysis workflow:
 
-The demo data and results can be downloaded from the following link: https://drive.google.com/drive/folders/1yLNTHNciC9vllmzdA7vuPHmrxjjQ04ce?usp=sharing
+The demo data 20181026_1TO10_1.raw can be downloaded from the following link: https://www.iprox.cn/page/subproject.html?id=IPX0002900001
 
 A. Make a folder such as "isoTOP-ABPP", upload LC-MS/MS data in mzXML format and create a folder (e.g. dta).
 
@@ -85,7 +85,7 @@ cimage_mascot 2mod parameter_file modify_AA1 light_number1 heavy_number1 modify_
 cimage_andromeda your-cimage-params-file MOD PREFIX 
 #In which MOD is the modification symbol. For example, in PEPTI(ga)DE, the GlcNAc modification is represented by ga, so the MOD should be ‘ga’
 ```
- - For pFind and MSFragger: comming soon ...
+ - For pFind and MSFragger: see details in the tutorial folder
 
 E. If it runs fine, it will generate a "output" folder in which there will be a "to_excel" text file for your editing in excel and a folder of "PNG" containing all individual graphic files. During CIMAGE processing, the screen will also print the progress
 ```
@@ -132,7 +132,7 @@ pdf_generator your-cimage-params-file PREFIX ID
 ```
 the “ID” is entry No. showed in the plotted picture.
 
-D. ***extract_LC_peaks.py***, extract features from MS1 file for peaking paired peaks
+D. ***extract_LC_peaks.py***, extract features from MS1 file for peaking paired peaks [obsolete]
 ```
 extract_LC_peaks.py 20181026_1TO1_01.ms1 0.02
 python check_pair_by_envelope.py env_[id].dat
