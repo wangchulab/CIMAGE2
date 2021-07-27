@@ -8,10 +8,10 @@ Download philosopher from https://philosopher.nesvilab.org/
 
 ## Identification
 
-1. Convert raw file to mzML with [MSConvert](https://sourceforge.net/projects/proteowizard/), we recommend create a **dta** directory, link mzML and copy fasta (with reversed decoys) into it
+1. Convert raw file to mzML with [MSConvert](https://sourceforge.net/projects/proteowizard/), create a **dta** directory, link mzML and copy fasta (with reversed decoys) into it (there will be two copies of mzML file, one for identification and one for quantification)
 
-2. Search with two (light and heavy) variable modifications, see **closed_fragger.params**
-
+2. Search with two (light and heavy) variable modifications, see **closed_fragger.params**, you need to delete symbol **'**
+from the description line, it conflicts with html output format
    ```bash
    $>tree dta
    ├── 20181026_1TO1_1.mzML -> ../20181026_1TO1_1.mzML
