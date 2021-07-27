@@ -35,8 +35,8 @@ clip_nTerm_M = 1                            # Specifies the trimming of a protei
 # peptide termini
 variable_mod_01 = 15.99490 M 3
 variable_mod_02 = 42.01060 [^ 1
-variable_mod_03 = 464.285952 C 2
-variable_mod_04 = 470.299762 C 2
+variable_mod_03 = 464.28595 C 2
+variable_mod_04 = 470.29976 C 2
 
 allow_multiple_variable_mods_on_residue = 0 # Allow each residue to be modified by multiple variable modifications (0 or 1).
 max_variable_mods_per_peptide = 3           # Maximum total number of variable modifications per peptide.
