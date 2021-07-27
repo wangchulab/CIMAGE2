@@ -29,8 +29,8 @@ flag_loc = False
 loc_db = []
 all_loc_AA = np.zeros([nAA])
 all_AA = np.zeros([nAA])
-for fn in sys.argv[2:]:
-  #fn = sys.argv[2]
+if len(sys.argv) >= 3:
+  fn = sys.argv[2]
   flag_loc = True
   lines = open( fn, 'r' ).readlines()
   for l in lines[1:]:
@@ -126,7 +126,7 @@ while ps < ndat and pe < ndat:
       output_str = "%.4f %d" % (dmid, pe-ps+1)
       for i, val in enumerate(vals):
         if i < 1 or zsc[i] > 1.2:
-          output_str += " %s %.3f %.3f (%.5f)" % (val[0], val[1], zsc[i], width)
+          output_str += " %s %.4f %.4f w= %.2f" % (val[0], val[1], zsc[i], width)
       print output_str
 
     ps = pe

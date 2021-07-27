@@ -1,3 +1,4 @@
+rm -rf *.pepindex
 philosopher workspace --init
 philosopher database --annotate target.fasta --prefix Reverse_
 philosopher peptideprophet --nonparam --expectscore --decoyprobs --masswidth 1000.0 --clevel 2 --decoy Reverse_ --database target.fasta --combine $*

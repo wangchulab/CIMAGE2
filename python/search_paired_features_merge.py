@@ -10,8 +10,10 @@ tol = 0.001
 dM0 = 1.003355
 rt_gap = 0.2 #merge
 max_Np = 5 #4 5
+#max_Np = 10
 #max_R2 = 0.5
 A = 10.0
+#A = 40.0
 charges = [ 2, 3, 4, 5, 6 ]
 
 class paired_feats:
