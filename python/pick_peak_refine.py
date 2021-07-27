@@ -52,7 +52,7 @@ sortm = sorted(diffm)
 ndat = len(sortm)
 nmid = 4
 nwin = 9
-dtol = 0.05
+dtol = 0.02
 
 def get_loc( query_mass ):
   this_loc_AA = np.zeros([nAA])
