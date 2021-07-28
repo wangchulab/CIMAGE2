@@ -1,5 +1,5 @@
 # CIMAGE 2.0
-Release version of CIMAGE, scripts for quantification only. (no web server)
+Latest version of CIMAGE, an expanded tool for quantitative analysis of activity-based probe profiling (ABPP) data
 
 Contact: chuwang@pku.edu.cn jinjungao@uchicago.edu or wendao@pku.edu.cn
 
