@@ -1,4 +1,4 @@
-# Pipline with ProLuCID
+# Pipeline with ProLuCID
 
 Download [ProLuCID](http://fields.scripps.edu/yates/wp/?page_id=821)
 
