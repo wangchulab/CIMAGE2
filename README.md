@@ -127,7 +127,26 @@ cimage_combine [by_protein] dta
 ```
 It will generate a combine_dta.html and a raw text file combine_dta.txt. Skip the by_protein option if you would like to by default group identified peptides by their sequence instead of their parent proteins.
 
-“combine_dta.txt” is a text version of the quantification results that can be further processed by users with their own customized scripts.
+After this step, this folder should contain:
+
+```
+20181026_1TO1_1.mzXML
+combined_dta.Rout
+combined_dta.html
+combined_dta.txt
+combined_dta.vennDiagram.png
+combined_dta_IR.png
+combined_dta_LR.png
+combined_dta_histogram_IR.png
+combined_dta_histogram_LR.png
+dta/
+```
+
+Open the combine_dta.html page and it will contain the list of peptides that have been quantified with information on protein ID, protein name, gene name, peptide sequence, mass, integrated ratio (column mr, ratio calculated by integrated intensity), slope of the least square fitting curve (column mlr), sd, charges, fractions (column segment) and image link as below. Columns for different sets and runs are used to compare different experiment sets and replicates when using **cimage_compare** module, respectively. Click on the hyperlink at the end of each line to visualize the raw chromatographic traces for calculate the quantitative ratios.
+
+![](tutorials\demo.png)
+
+“combine_dta.txt” is a text version of the quantification results that can be further processed by users with their own customized scripts. 
 
 
 
