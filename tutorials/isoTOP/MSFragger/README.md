@@ -44,8 +44,14 @@ Generate input tables for CIMAGE
 ```bash
 /path/of/CIMAGE/python/pepPSMs2CimageTab.py 20181026_1TO1 target.fasta 'C:464.28595:*' 'C:470.29976:*' 'M:15.99490:#|n:42.01060:@' . .
 ```
-
-
+The options are
+	name of raw file
+	fasta file
+	modifications of light probe
+	modifications of heavy probe
+	modifications of normal peptide
+	location of psm.tsv for light label
+	location of psm.tsv for heavy label (same as light if you only search once)
 
 ## Quantification with CIMAGE
 
