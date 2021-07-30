@@ -144,8 +144,6 @@ dta/
 
 Open the combine_dta.html page and it will contain the list of peptides that have been quantified with information on protein ID, protein name, gene name, peptide sequence, mass, integrated ratio (column mr, ratio calculated by integrated intensity), slope of the least square fitting curve (column mlr), sd, charges, fractions (column segment) and image link as below. Columns for different sets and runs are used to compare different experiment sets and replicates when using **cimage_compare** module, respectively. Click on the hyperlink at the end of each line to visualize the raw chromatographic traces for calculate the quantitative ratios.
 
-![](tutorials/demo.png)
-
 “combine_dta.txt” is a text version of the quantification results that can be further processed by users with their own customized scripts. 
 
 
