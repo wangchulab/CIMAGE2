@@ -1,4 +1,4 @@
-# Pipeline with MSFragger
+# Pipeline with MaxQuant
 
 Download MaxQuant from https://www.maxquant.org/
 
