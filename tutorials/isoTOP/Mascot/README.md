@@ -1,20 +1,42 @@
 # Pipeline with Mascot
 
+**Note:** The pipeline was only tested on a very old version 2.3.2
+
+
+
+## Data preparation
+
+MSConvert is required for converting raw file to mgf format (peak picking with msLevel>1 and remove zero samples can reduce the size of output mgf file significantly).
+
 
 
 ## Identification
 
+Search with two variable modifications on CYS (light: 521.3074 and heavy: 527.3212) and fixed Carbamidomethyl modification (57.02146).
 
-## Preparation of input file
+Put the output **20181026_1TO1_1.csv** into **dta** folder, which is at the same level of mzXML file.
+
+
 
 
 ## Quantification with CIMAGE
-SILAC: 
-cimage SILAC your-cimage-params-file PREFIX
+Open the identification csv file, check the number of modifications, for example
 
-ABPP: 
-cimage_mascot 1mod paramfile modify_AA light_number heavy_number PREFIX 
-cimage_mascot 2mod parameter_file modify_AA1 light_number1 heavy_number1 modify_AA2 light_number2 heavy_number2 PREFIX
+```bash
+"Variable modifications","--------------------------------------------------------"
 
-PS: modify_AA represents the labelled amino acid (e.g., the modify_AA should be “C” when labelling cysteine). light_number and heavy_number are the number allocated to light and heavy modifications. If you probe can label two different amino acids, use the “2mod” command.
+"Identifier","Name","Delta","Neutral loss(es)"
+1,"Carbamidomethyl (C)",57.021464
+2,"Oxidation (M)",15.994915,0,63.998285
+3,"TEV-IA-heavy (C)",527.321225
+4,"TEV-IA-light (C)",521.307416
+```
+
+Then use **cimage_mascot** for quantification:
+
+```
+cimage_mascot 1mod /path/of/cimage.params C 4 3 20181026_1TO1
+```
+
+where "**C**" means modified amino acid, "**4**" is number of light probe, "**3**" is number of heavy probe.
 
