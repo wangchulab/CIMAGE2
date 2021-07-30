@@ -8,11 +8,12 @@ Demo raw file can be downloaded from https://www.iprox.cn/page/subproject.html?i
 
 ### Contents
 
-- cimage: params and tables for CIMAGE quantification
-- databases: fasta file which has no reverse decoys
-- ProLuCID, MSFragger, pFind: step-by-step workflow and relevant input files
+- isoTOP, SILAC and triplex-rdTOP for different scenario
+- params and tables for CIMAGE quantification
+- tutorial for different search engines
+- databases: fasta file which has no reversed decoys
 
 ### Notes
 
-- Change "/path/of" to fit your customized installation
+- Change "/path/of" within command line and params to fit your customized installation
 
