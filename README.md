@@ -76,7 +76,7 @@ C. Enter the “dta” folder and upload the database search results. In databas
 DTASelect-filter_20181026_1TO1_heavy.txt
 DTASelect-filter_20181026_1TO1_light.txt
 ```
- - For Andromeda (Maxquant), the evidence.txt file should be renamed as evidence_light.txt or evidence_heavy.txt
+ - For Andromeda (MaxQuant), the evidence.txt file should be renamed as evidence_light.txt or evidence_heavy.txt
  - For Mascot, the database search results in csv format are uploaded directly
  - For pFind, the spectra file should be rename as pFind_light.spectra or pFind_heavy.spectra
  - For MSFragger light and heavy label need to be set as two varible modifications and search only once
