@@ -4,15 +4,16 @@ This directory contains couple of examples for using CIMAGE with different searc
 
 Demo raw file can be downloaded from https://www.iprox.cn/page/subproject.html?id=IPX0002900001
 
-Take **20181026_1TO10_1.raw** for example, there are two variable modifications on CYS (light: 521.3074 and heavy: 527.3212), for ProLuCID and MSFragger, you need to substract 57.02146 for fixed Carbamidomethyl modification.
+
 
 ### Contents
 
-- cimage: params and tables for CIMAGE quantification
-- databases: fasta file which has no reverse decoys
-- ProLuCID, MSFragger, pFind: step-by-step workflow and relevant input files
+- isoTOP, SILAC and triplex-rdTOP for different scenario
+- params and tables for CIMAGE quantification
+- tutorial for different search engines
+- databases: fasta file which has no reversed decoys
 
 ### Notes
 
-- Change "/path/of" to fit your customized installation
+- Change "/path/of" within command line and params to fit your customized installation
 

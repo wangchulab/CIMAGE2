@@ -1,0 +1,30 @@
+!!! light chemical composition table !!!
+light.chem.table = /path/of/light.IA_tev_dimethyl.table.txt
+!!! medium chemical composition table !!!
+medium.chem.table = /path/of/medium.IA_tev_dimethyl.table.txt
+!!! heavy chemical composition table !!!
+heavy.chem.table = /path/of/heavy.IA_tev_dimethyl.table.txt
+!!! N15 enrichment percentage !!!
+N15.enrichment = 1.0
+!!! MS1 chromatogram ppm resolution !!!
+ppm.tolerance = 25.0
+!!! retention time window width in minutes!!!
+rt.window = 10
+!!! local retention time window for noise calculation in minutes!!!
+local.rt.window = 2.0
+!!! singal to noise cutoff for peak detection !!!
+sn = 2.5
+!!! range cutoff for calculated ratios!!!
+ratio.range = 0.0 999999
+!!! isotope envelope score cutoff !!!
+env.score.cutoff = 0.80
+!!! coelution profile r2 cutoff !!!
+r2.cutoff = 0.7
+!!! minimum peak width in numbers of time points!!!
+minimum.peak.points = 3
+!!! choose peaks with MS2 only?!!!
+peaks.with.ms2.only = TRUE
+!!! output data folder name !!!
+output.path  = output
+!!! singleton ratios !!!
+singleton.ratio = 15.0
