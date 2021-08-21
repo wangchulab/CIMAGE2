@@ -11,12 +11,12 @@ if len(sys.argv) >= 2:
 else:
   fn = "psm.tsv"
 lines = open( fn, 'r' ).readlines()
-#for line in lines:
-#    elems = line.split()
-#    diffm.append(float(elems[2]))
+t = {}
+for n, tag in enumerate(lines[0].split('\t')):
+  t[tag] = n
 for line in lines[1:]:
   es = line.split('\t')
-  diffm.append(float(es[13]))
+  diffm.append(float(es[t["Delta Mass"]]))
 
 #tags
 nAA = 21
@@ -33,10 +33,14 @@ for fn in sys.argv[2:]:
   #fn = sys.argv[2]
   flag_loc = True
   lines = open( fn, 'r' ).readlines()
+  #parse tags
+  t = {}
+  for n,tag in enumerate(lines[0].split('\t')):
+    t[tag] = n
   for l in lines[1:]:
     es = l.split('\t')
-    best_loc_str = es[19]
-    loc_db.append( (float(es[12]), best_loc_str) )
+    best_loc_str = es[t["best_locs"]]
+    loc_db.append( (float(es[t["massdiff"]]), best_loc_str) )
     for i in range(len(best_loc_str)-1): #ignore enzymetic bias
       c = best_loc_str[i]
       AA = c.upper()
