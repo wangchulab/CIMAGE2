@@ -4,7 +4,7 @@ This directory contains couple of examples for using CIMAGE with different searc
 
 Demo raw file can be downloaded from https://www.iprox.cn/page/subproject.html?id=IPX0002900001
 
-
+We also deposited all results to https://zenodo.org/record/5229177 for reference.
 
 ### Contents
 
@@ -16,4 +16,4 @@ Demo raw file can be downloaded from https://www.iprox.cn/page/subproject.html?i
 ### Notes
 
 - Change "/path/of" within command line and params to fit your customized installation
-
+- Results might vary slightly depending on the search engine version
