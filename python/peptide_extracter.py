@@ -68,6 +68,7 @@ def extract_motif_pos(pro, pep):
     seq = db_seq[pro]
   except:
     print "Warning: protein", pro, "not found"
+    return lst
 
   locs = []
   L = len(pep)
@@ -79,7 +80,7 @@ def extract_motif_pos(pro, pep):
       j += 1
     elif c in marks:
       locs.append(j)
-  
+
   L_all = len(seq)
   start = seq.find(clean_pep)
   if start<0:
