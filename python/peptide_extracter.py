@@ -16,12 +16,21 @@ for rec in SeqIO.parse(sys.argv[2], "fasta"):
   k = cur_id.split('|')[1]
   db_seq[k] = cur_seq
 
-marks = [c for c in sys.argv[3]]
+#marks = [c for c in sys.argv[3]]
+marks = []
+map_mark = {}
+for c in sys.argv[3].split('|'):
+  if "," in c:
+    mark, label = c.split(',')
+    map_mark[label] = mark
+    marks.append(mark)
+  else:
+    marks.append(c)
 
 def load_cimage(fn):
   #print "#Loading from cimage_combine output"
   lines = open(fn, 'r').readlines()
-  tags = lines[0].split()
+  #tags = lines[0].split()
   for l in lines[1:]:
     es = l.split('\t')
     if es[0] != " ":
@@ -45,8 +54,31 @@ def load_cimage(fn):
 
 def load_pfind(fn):
   lines = open(fn, 'r').readlines()
-  for l in lines:
-    yield (pro, pep, R)
+  t = {}
+  nm = 0
+  for n,tag in enumerate(lines[0].strip().split('\t')):
+    t[tag] = n
+  for l in lines[1:]:
+    es = l.split('\t')
+    pro = es[t["Protein AC"]].split('/')[0]
+    if pro[:4] == "REV_": continue
+    pro = pro.split('|')[1]
+    pep = es[t["Sq"]]
+    #print pep
+    mods = es[t["Mod_Sites"]]
+    R = 0.0
+    #print mods
+    for mod in mods.split(';')[:-1]:
+      #print mod
+      loc, mod = mod.split(',')
+      loc = int(loc)
+      for l in map_mark.keys():
+        marker = map_mark[l]
+        if mod.split('#')[0] == l:
+          #match
+          #print loc, pep[loc+nm]
+          pep = pep[:loc+nm]+marker+pep[loc+nm:]
+          yield (pro, pep, R)
   return
 
 def load_msfragger(fn):
@@ -62,7 +94,7 @@ def load_msfragger(fn):
   return
 
 def extract_motif_pos(pro, pep):
-  #return 
+  #print "-", pro, pep
   lst = []
   try:
     seq = db_seq[pro]
@@ -109,6 +141,7 @@ fn = sys.argv[1]
 if fn[:10] == "all_result":
   #reading pfind results
   for (pro, pep, R) in load_pfind(fn):
+    #print pro, pep
     for motif, pos in extract_motif_pos(pro, pep):
       print pro, motif, pos, R
 elif fn[-4:] == ".txt":
