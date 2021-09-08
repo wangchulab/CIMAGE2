@@ -18,7 +18,7 @@ for n, tag in enumerate(lines[0].split()):
 
 map_ref_mass = {}
 for l in lines[1:]:
-  es = l.strip().split()
+  es = l.strip().split('\t')
   name = es[0]
   mass = 0.0
   for n, a in enumerate(es[1:]):
@@ -28,13 +28,13 @@ for l in lines[1:]:
 lines = open(sys.argv[1], 'r').readlines()
 lines = clean_header(lines)
 for l in lines[1:]:
-  es = l.strip().split()
+  es = l.strip().split('\t')
   name = es[0]
   mass = 0.0
   for n, a in enumerate(es[1:]):
     mass += at.mass[map_tag[n]] * int(a)
   ref_mass = map_ref_mass[name]
-  dm = fabs( ref_mass - mass )
-  if dm > 0.01:
+  dm = mass - ref_mass
+  if fabs(dm) > 0.01:
     print name, dm
 
