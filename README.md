@@ -23,7 +23,7 @@ Other libray
 sudo apt install libxml2-dev libnetcdf-dev zlib1g-dev
 ```
 
-XCMS (tested on version 1.51.1 and 1.52.0)
+XCMS (tested on version 1.51.1/1.52.0 and 3.21.0)
 
 ```
 source("https://bioconductor.org/biocLite.R")
