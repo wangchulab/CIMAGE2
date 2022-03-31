@@ -1,11 +1,29 @@
 #!/usr/bin/env python
 
-import sys
+import sys, glob
+import argparse
 from math import fabs
 import numpy as np
 from collections import defaultdict
-import sys, glob
 from Bio import SeqIO
+
+parse = argparse.ArgumentParser(prog = 'csv2CimageTab', add_help=False)
+parse.add_argument('-c', '--config', help='config file')
+parse.add_argument('-t', '--title', help='prefix of raw data')
+parse.add_argument('-l', '--light', help='modifications of L label')
+parse.add_argument('-m', '--medium', default="", help='modifications of M label')
+parse.add_argument('-h', '--heavy', help='modifications of H label')
+parse.add_argument('-L', '--light_file', help='csv of L')
+parse.add_argument('-M', '--medium_file', help='csv of M')
+parse.add_argument('-H', '--heavy_file', help='csv of H')
+parse.add_argument('-n', '--normal', help="modifications of ALL")
+parse.add_argument('-f', '--fasta', help="fasta db")
+parse.add_argument('-r', '--rev', default="Reverse_", help="discard rev seq")
+parse.add_argument('-j', '--jump', type=int, default=1, help="skip N lines of csv")
+parse.add_argument('-s', '--space', default='\t', help="sep col")
+
+args = parse.parse_args()
+#parse.print_help()
 
 mass_tol = 0.01
 
@@ -16,7 +34,7 @@ mass_norm_AA = {
 "P" : 97.05276,
 "V" : 99.06841,
 "T" :101.04768,
-"C" :160.03064, #103.00918+57.021464=160.03064
+"C" :160.03064,
 "L" :113.08406,
 "I" :113.08406,
 "N" :114.04293,
@@ -34,6 +52,7 @@ mass_norm_AA = {
 }
 
 L_labels = []
+M_labels = []
 H_labels = []
 norm_labels = []
 norm_nterm_labels = []
@@ -42,25 +61,33 @@ ipi_lst = defaultdict(None)
 scan_lst = []
 cross_tab = defaultdict(list)
 
-sample_name = sys.argv[1]
-db_fn = sys.argv[2]
+sample_name = args.title
+db_fn = args.fasta
 
 db_seq = {}
 for record in SeqIO.parse(db_fn, "fasta"):
-    if record.id[:8] == "Reverse_": continue
-    pro = record.id.split()[0]
+    if record.id[:8] == args.rev: continue
+    pro = record.id.split()[0].split('|')[1]
     db_seq[pro] = record.seq
 
 #light
-for mod in sys.argv[3].split('|'):
+for mod in args.light.split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         AA = elems[0]
         mod_mass = float(elems[1])
         tag = elems[2]
         L_labels.append((AA, mod_mass, tag))
+#medium
+for mod in args.medium.split('|'):
+    elems = mod.split(':')
+    if len(elems) == 3:
+        AA = elems[0]
+        mod_mass = float(elems[1])
+        tag = elems[2]
+        M_labels.append((AA, mod_mass, tag))
 #heavy
-for mod in sys.argv[4].split('|'):
+for mod in args.heavy.split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         AA = elems[0]
@@ -68,7 +95,7 @@ for mod in sys.argv[4].split('|'):
         tag = elems[2]
         H_labels.append((AA, mod_mass, tag))
 #normal
-for mod in sys.argv[5].split('|'):
+for mod in args.normal.split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         AA = elems[0]
@@ -79,16 +106,18 @@ for mod in sys.argv[5].split('|'):
         else:
             norm_labels.append((AA, mod_mass, tag))
 
-print "quant labels"
-print L_labels
-print H_labels
-print "normal labels"
-print norm_labels
-print norm_nterm_labels
+print("quant labels")
+print(L_labels)
+print(M_labels)
+print(H_labels)
+print("normal labels")
+print(norm_labels)
+print(norm_nterm_labels)
 
-pepxml_dir = {}
-pepxml_dir["light"] = sys.argv[6]
-pepxml_dir["heavy"] = sys.argv[7]
+csv_dir = {}
+csv_dir["light"] = args.light_file
+csv_dir["medium"] = args.medium_file
+csv_dir["heavy"] = args.heavy_file
 
 def mark_seq(uAA, seq, dAA, markers):
     ans = ""
@@ -102,19 +131,27 @@ def mark_seq(uAA, seq, dAA, markers):
         for marker, ndx in markers:
             ans = ans + seq[prev:ndx+1] + marker
             prev = ndx + 1
-            print ans, prev
+            #print(ans, prev)
         ans = ans + seq[prev:] + "." + dAA
     return ans
 
-print "Parsing pepXML files..."
-print 
-for tag in [ "light", "heavy" ]:
+print("Parsing CSV files...")
+for tag in [ "light", "medium", "heavy" ]:
+    if csv_dir[tag] is None: continue
     #build mod list
     std_AA = [] #mark AA that's modified but not marked (SILAC)
     mod_list = []
     nterm_labels = []
     if tag == "light":
         for m in L_labels:
+            if m[1] < mass_tol and m[2]=="-": #??
+                std_AA.append(m[0])
+            elif m[0][0]=="n":
+                nterm_labels.append(m)
+            else:
+                mod_list.append(m)
+    elif tag =="medium":
+        for m in M_labels:
             if m[1] < mass_tol and m[2]=="-": #??
                 std_AA.append(m[0])
             elif m[0][0]=="n":
@@ -130,51 +167,58 @@ for tag in [ "light", "heavy" ]:
             else:
                 mod_list.append(m)
     else:
-        print "Warning tag error!"
+        print("Warning tag error!")
         break
-    print "## ", tag
-    print "mod list"
-    print mod_list
-    print "nter labels"
-    print nterm_labels
-    print "others"
-    print std_AA
+    print("## ", tag)
+    print("mod list")
+    print(mod_list)
+    print("nter labels")
+    print(nterm_labels)
+    print("others")
+    print(std_AA)
 
-    print "Loading ..."
-    fn = pepxml_dir[tag]+"/psm.tsv"
-    print fn
+    print("Loading ...")
+    fn = csv_dir[tag]
+    print(fn)
+
     lines = open(fn, 'r').readlines()
-    elems = lines[0].strip().split('\t')
+    elems = lines[0].strip().split(args.space)
     tags = {}
     for n, e in enumerate(elems):
         tags[e] = n
-    for l in lines[1:]:
-        elems = l.strip().split('\t')
-        
-        pro = elems[tags["Protein"]]
-        disc = elems[tags["Protein Description"]].strip()
-        full_seq = db_seq[pro]
-        seq = elems[tags["Peptide"]]
-        pro = pro + "\t" + disc
-        #locate
+    #print(tags)
+    for l in lines[args.jump:]:
+        elems = l.strip().split(args.space)
+        #print(elems)
+
+        pro = elems[tags['"Master Protein Accessions"']]
+        pro = pro.strip('"').split(';')[0]
+        if len(pro) == 0:
+            pro = elems[tags['"Protein Accessions"']]
+            pro = pro.strip('"').split(';')[0]
+        disc = ""
+        mod_seq = elems[tags['"Annotated Sequence"']]
+        mod_seq = mod_seq.strip('"').split(".")
+        #print(pro, mod_seq)
+        uAA = mod_seq[0][-2]
+        dAA = mod_seq[2][1]
+        seq = mod_seq[1].upper()
+        try:
+            full_seq = db_seq[pro]
+        except:
+            print("Protein not found!", pro, l)
+            continue
         loc = full_seq.find(seq)
-        #print pro, seq, loc
-        #print full_seq
-        uAA = '-'
-        dAA = '-'
-        if loc > 0: uAA = full_seq[loc-1]
-        if loc + len(seq) < len(full_seq): dAA = full_seq[loc+len(seq)]
-        print uAA +'.'+seq+'.'+dAA
-        #assert(0)
+        #print(pro, uAA+'.'+seq+'.'+dAA, full_seq, loc)
 
-        spects = elems[tags["Spectrum"]].split('.')
-        raw_fn = spects[0]
-        scan_id = spects[1]
-        charge = int(spects[3])
-        score = float(elems[tags["Expectation"]])
+        raw_fn =  elems[tags['"Spectrum File"']].strip('"').split('.')[0]
+        scan_id = elems[tags['"First Scan"']].strip('"')
+        charge = int(elems[tags['"Charge"']].strip('"'))
+        score = float(elems[tags['"Percolator q-Value"']].strip('"'))
 
-        pep_mass = float(elems[tags["Calculated M/Z"]])
-        mass = float(elems[tags["Observed M/Z"]]) * charge
+        #"m/z [Da]"	"MH+ [Da]"	"Theo. MH+ [Da]"
+        #pep_mass = float(elems[tags["Calculated M/Z"]])
+        mass = float(elems[tags['"MH+ [Da]"']].strip('"'))
 
         ts = raw_fn.split('_')
         com_fn = ""
@@ -183,91 +227,72 @@ for tag in [ "light", "heavy" ]:
         com_fn = com_fn[:-1]
         fn_ndx = ts[-1]
 
-        rt = float(elems[tags["Retention"]])
-        #ori_dM = float(elems[tags["Original Delta Mass"]])
-        #adj_dM = float(elems[tags["Adjusted Delta Mass"]])
+        rt = float(elems[tags['"RT [min]"']].strip('"'))
 
         current_label = None
         nterm_marker = "-"
         markers = []
         #check mod
-        mods = elems[tags["Assigned Modifications"]]
-        if len(mods)>1:
-            mods = [m.strip() for m in mods.split(',')]
+        mods = elems[tags['"Modifications"']]
+        if len(mods)>2:
+            mods = [m.strip('"') for m in mods.split(';')]
+            #print(mods)
         else:
             mods = []
-        print mods
+
         for assigned_mod in mods:
-            tmps = assigned_mod[:-1].split('(')
-            posA = tmps[0].strip()
-            print "DB:", assigned_mod, posA
-            if posA != "N-term":
-                mod_mass = float(tmps[1])
-                ndx = int(posA[:-1])-1
-                ideal_mass = mass_norm_AA[seq[ndx]]
-                diff_mass = mod_mass #differ from xml file
-                #check label mod
+            if assigned_mod[:6] != "N-Term":
+                tmps = assigned_mod[:-1].strip()
+                loc = tmps.find('(')
+                posA = tmps[:loc]
+                modn = tmps[loc+1:]
+            else:
+                tmps = assigned_mod[:-1].strip()
+                loc = tmps.find(')(')
+                posA = "N-Term"
+                modn = tmps[loc+2:]
+            #skip N-term by now ...
+            if posA != "N-Term":
+                ndx = int(posA[1:])-1
                 for m in mod_list:
-                    #m: "name", "mass", "marker"
-                    if m[0] == seq[ndx] and fabs(diff_mass-m[1]) <= mass_tol: #AA
+                    if m[0] == modn:
                         current_label = tag
                         if m[2]!="-": markers.append((m[2], ndx))
-                #check normal mod
                 for m in norm_labels:
-                    if m[0] == seq[ndx] and fabs(diff_mass-m[1]) <= mass_tol: #AA
+                    if m[0] == modn:
                         if m[2]!="-": markers.append((m[2], ndx))
             else:
-                #check nterm
-                mod_nterm_mass = float(tmps[1])
-                diff_mass = mod_nterm_mass
                 for m in nterm_labels:
-                    if m[0] == 'n' and fabs(diff_mass-m[1]) <= mass_tol: #nter
-                        current_label = tag
-                        nterm_marker = m[2]
+                    current_label = tag
+                    nterm_marker = m[2]
 
-        #after check
         if current_label == None and len(std_AA)>0:
             for aa in std_AA:
                 if aa in seq:
                     current_label = tag
                     break
-        #finsh mod
 
         if current_label != None:
-            # to be quantified
             if pro not in ipi_lst.keys():
                 ipi_lst[pro] = 1
             else:
                 ipi_lst[pro] = ipi_lst[pro]+1
-            gene = pro.split()[0].split('|')[1]
+            gene = pro
             if pro[:7] == "Reverse": gene = "Reverse_" + gene
-            print "seq:", seq
-            print "marks:", markers
+            print("seq:", seq)
+            print("marks:", markers)
             all_seq = mark_seq(uAA, seq, dAA, markers)
-            print "result:", all_seq
+            print("result:", all_seq)
             if nterm_marker!="-":
                 all_seq = all_seq[:2] + nterm_marker + all_seq[2:]
+
             scan_key = gene + ":" + all_seq + ":" + str(charge) + ":" + fn_ndx
+            print(scan_key)
             scan_lst.append(scan_key + " " + com_fn + " " + str(scan_id) + " " + current_label + "\n")
             cross_tab[scan_key].append((mass, scan_id, score))
-    print "Done!"
-    print
-
-#output
-def get_symbol(disc):
-  gene = ""
-  elems = disc.split()
-  if "GN=" in disc:
-    #get from record
-    for elem in elems:
-      if elem[:3] == "GN=":
-        gene = elem[3:]
-  elif len(elems)>0:
-    gene = elems[0]
-  else:
-    gene = "NULL"
-    print disc
-  return gene
+    print("Done!")
+    print("scan_list:", len(scan_lst))
+    print("cross_table:", len(cross_tab.keys()))
 
 #save ipi_name.table
 ipiout = open("ipi_name.table", 'w')
@@ -285,16 +310,17 @@ for pro in out_ipi_lst:
     #gene = tmp[0]
     #disc = disc[len(gene)+1:]
     #symbol = get_symbol(disc)
+    print(pro)
     elems = pro.split('\t')
-    disc = elems[1]
-    ipi = elems[0].split('|')[1]
+    disc = "NO INFO"
+    ipi = pro
     out_uni_lst.append(ipi)
     if elems[0][:7] == "Reverse":
         ipi = "Reverse_" + ipi
     #disc = disc.split("[REVIEWED]")[0]
     #label = disc.find("[NOT_REVIEWED]")
-    label = elems[0].split('|')[2]
-    symbol = elems[0].split('|')[2]
+    label = 0
+    symbol = "NONE"
     #if label>0:
     #     disc = disc[:label]
     #elems = disc.split()
@@ -313,7 +339,7 @@ for pro in out_ipi_lst:
     ipiout.write(disc)
     ipiout.write("\n")
 ipiout.close()
-
+print(out_uni_lst)
 #save all_scan.table
 scanout = open("all_scan.table", 'w')
 scanout.write("key run scan HL\n")

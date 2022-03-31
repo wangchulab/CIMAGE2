@@ -90,7 +90,7 @@ for tag in [ "light", "heavy" ]:#
         #if mod[1] not in map_mod_sign.keys():
         #  skip = True
         #  break
-        sign = map_mod_sign[mod[1]]
+        sign = map_mod_sign[mod[1]] #marker
         seq = seq[:int(mod[0])+i] + sign + seq[int(mod[0])+i:]
       #if skip: continue
       seq = seq.replace("-", "")
