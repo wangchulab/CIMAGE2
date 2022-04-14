@@ -10,9 +10,9 @@ map_atom_mass = {
     "N"  : 14.00307,
     "S"  : 31.97207,
     "P"  : 30.97376,
-    "13C": 13.003355,
-    "15N": 15.000109,
-    "2H" : 2.014102
+    "C13": 13.003355,
+    "N15": 15.000109,
+    "H2" : 2.014102
 }
 
 glc_DB = {}
@@ -176,11 +176,23 @@ for tag in ["light", "heavy"]:
         cross_tab[label][scan_key].append((tot_mass, scan_id, -log(tot_fdr)))
         #print pro, ipi, uAA, pep_seq, dAA, loc, markers, all_seq
 
+def get_mass( atomN ):
+    mass = 0.0
+    for a in atomN.keys():
+        n = atomN[a]
+        mass += map_atom_mass[a] * n
+    return mass
+
 def gen_glc_atom( name, glc, tag ):
-    #name LPG/HPG
-    #glc atom list
-    #00001
-    return []
+    counts = defaultdict(int)
+    for i, g in enumerate(["H", "N", "A", "F"]):
+        n = int(tag[i])
+        for k in glc[g].keys():
+            counts[k] += glc[g][k] * n
+    for k in glc[name].keys():
+        counts[k] += glc[name][k] * int(tag[-1])
+    print name, tag, get_mass(counts)
+    return ('*', zip(counts.keys(), counts.values()))
 
 def get_str( marker ):
     str_mod = marker[0]
@@ -190,17 +202,18 @@ def get_str( marker ):
     return str_mod+":"+":".join(tmp)
 
 for g in ipi_lst.keys():
-    print "G:", g
     # generate dir
     try:
         os.makedirs(g)
     except: pass
     # generate tab.txt
-    for name in tab_DB.keys():
-        for m in tab_DB[name]:
-            print get_str(m)
-    break
-    # generate cimage.params
+    with open(g+"/tab.txt", 'w') as tabout:
+        for name in tab_DB.keys():
+            tabout.write(name)
+            for m in tab_DB[name]:
+                tabout.write(" "+get_str(m))
+            tabout.write(" "+get_str(gen_glc_atom(name, glc_DB, g)))
+            tabout.write("\n")
     # generate ipi/all_scan/cross
     out_ipi_lst = [ p for p in ipi_lst[g].keys() if ipi_lst[g][p]>=1 ]
     out_uni_lst = [ p.split('\t')[0].split('|')[1] for p in ipi_lst[g].keys() if ipi_lst[g][p]>=1 ]
