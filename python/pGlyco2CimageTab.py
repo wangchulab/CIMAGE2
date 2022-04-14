@@ -39,6 +39,24 @@ for record in SeqIO.parse("../UP000005640_9606.fasta", "fasta"):
     des_DB[pro] = record.description
 #print seq_DB.keys()
 
+tab_DB = defaultdict(list)
+lines = open("../tab.tmpl", 'r').readlines()
+for l in lines:
+    es = l.strip().split()
+    name = es[0]
+    markers = []
+    for marker in es[1:]:
+        atoms = []
+        tmp = marker.split(':')
+        mark = tmp[0]
+        for atom in tmp[1:]:
+            a, n = atom.split(',')
+            n = int(n)
+            atoms.append((a,n))
+        markers.append( (mark, atoms) ) 
+    tab_DB[name] = markers
+#print tab_DB
+
 L_labels = []
 H_labels = []
 norm_labels = {}
@@ -116,11 +134,12 @@ for tag in ["light", "heavy"]:
         scan_id = es[tags["Scan"]]
         mods = es[tags["Mod"]]
         glc_site = int(es[tags["GlySite"]])
-        label = es[tags["Glycan(H,N,A,F," + glc_label[tag] + ")"]]
+        current_label = glc_label[tag]
+        label = es[tags["Glycan(H,N,A,F," + current_label + ")"]]
         label = "".join(label.split(' '))
         pep_mass = float(es[tags["PeptideMH"]])
         glc_mass = float(es[tags["GlyMass"]])
-        tot_fdr = float(es[tags["TotalFDR"]])
+        tot_fdr = float(es[tags["TotalFDR"]])+1e-20
         tot_mass = pep_mass + glc_mass
         rt = float(es[tags["RT"]])
 
@@ -129,9 +148,7 @@ for tag in ["light", "heavy"]:
         fn_ndx = ts[-1]
 
         #quick check
-        if label[-1] == "0":
-            print "skip!", label
-            continue
+        if label[-1] == "0": continue
 
         #normal
         markers = []
@@ -159,6 +176,19 @@ for tag in ["light", "heavy"]:
         cross_tab[label][scan_key].append((tot_mass, scan_id, -log(tot_fdr)))
         #print pro, ipi, uAA, pep_seq, dAA, loc, markers, all_seq
 
+def gen_glc_atom( name, glc, tag ):
+    #name LPG/HPG
+    #glc atom list
+    #00001
+    return []
+
+def get_str( marker ):
+    str_mod = marker[0]
+    tmp = []
+    for atom, N in marker[1]:
+        tmp.append(atom+","+str(N))
+    return str_mod+":"+":".join(tmp)
+
 for g in ipi_lst.keys():
     print "G:", g
     # generate dir
@@ -166,6 +196,10 @@ for g in ipi_lst.keys():
         os.makedirs(g)
     except: pass
     # generate tab.txt
+    for name in tab_DB.keys():
+        for m in tab_DB[name]:
+            print get_str(m)
+    break
     # generate cimage.params
     # generate ipi/all_scan/cross
     out_ipi_lst = [ p for p in ipi_lst[g].keys() if ipi_lst[g][p]>=1 ]
