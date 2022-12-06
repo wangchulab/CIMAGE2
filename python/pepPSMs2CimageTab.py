@@ -46,10 +46,12 @@ sample_name = sys.argv[1]
 db_fn = sys.argv[2]
 
 db_seq = {}
+disc_db = {}
 for record in SeqIO.parse(db_fn, "fasta"):
-    if record.id[:8] == "Reverse_": continue
     pro = record.id.split()[0]
     db_seq[pro] = record.seq
+    if pro[:4] == "rev_": continue
+    disc_db[pro] = " ".join(record.description.split(" ")[1:])
 
 #light
 for mod in sys.argv[3].split('|'):
@@ -152,10 +154,11 @@ for tag in [ "light", "heavy" ]:
         elems = l.strip().split('\t')
         
         pro = elems[tags["Protein"]]
-        disc = elems[tags["Protein Description"]].strip()
+        #disc = elems[tags["Protein Description"]].strip()
         full_seq = db_seq[pro]
         seq = elems[tags["Peptide"]]
-        pro = pro + "\t" + disc
+        #if not disc_db.has_key(pro):
+        #    disc_db[pro] = disc
         #locate
         loc = full_seq.find(seq)
         #print pro, seq, loc
@@ -240,7 +243,7 @@ for tag in [ "light", "heavy" ]:
             else:
                 ipi_lst[pro] = ipi_lst[pro]+1
             gene = pro.split()[0].split('|')[1]
-            if pro[:7] == "Reverse": gene = "Reverse_" + gene
+            #if pro[:4] == "rev_": gene = "rev_" + gene
             print "seq:", seq
             print "marks:", markers
             all_seq = mark_seq(uAA, seq, dAA, markers)
@@ -277,35 +280,12 @@ out_ipi_lst = [ p for p in ipi_lst.keys() if ipi_lst[p]>=1 ]
 
 out_uni_lst = []
 for pro in out_ipi_lst:
-    #skip rev decoys ?
-    #elems = pro.split('|')
-    #ipi = elems[1] #uniprot actually
-    #disc = elems[2]
-    #tmp = disc.split()
-    #gene = tmp[0]
-    #disc = disc[len(gene)+1:]
-    #symbol = get_symbol(disc)
-    elems = pro.split('\t')
-    disc = elems[1]
-    ipi = elems[0].split('|')[1]
+    disc = disc_db[pro]
+    ipi = pro.split('|')[1]
     out_uni_lst.append(ipi)
-    if elems[0][:7] == "Reverse":
-        ipi = "Reverse_" + ipi
-    #disc = disc.split("[REVIEWED]")[0]
-    #label = disc.find("[NOT_REVIEWED]")
-    label = elems[0].split('|')[2]
-    symbol = elems[0].split('|')[2]
-    #if label>0:
-    #     disc = disc[:label]
-    #elems = disc.split()
-    #disc = ""
-    #for elem in elems:
-    #  if "=" in elem: break
-    #  disc = disc + " " + elem
-    #disc = disc[:min(60,len(disc))]
-    #disc = disc.replace("'", "")
-    #ipiout.write(pro)
-    #ipiout.write("\n")
+    symbol = get_symbol(disc)
+    if symbol == "NULL":
+      symbol = pro.split('|')[2]
     ipiout.write(ipi)
     ipiout.write("\t")
     ipiout.write(symbol)
