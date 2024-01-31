@@ -34,6 +34,7 @@ mass_norm_AA = {
 }
 
 L_labels = []
+M_labels = []
 H_labels = []
 norm_labels = []
 norm_nterm_labels = []
@@ -46,12 +47,10 @@ sample_name = sys.argv[1]
 db_fn = sys.argv[2]
 
 db_seq = {}
-disc_db = {}
 for record in SeqIO.parse(db_fn, "fasta"):
+    if record.id[:8] == "Reverse_": continue
     pro = record.id.split()[0]
     db_seq[pro] = record.seq
-    if pro[:4] == "rev_": continue
-    disc_db[pro] = " ".join(record.description.split(" ")[1:])
 
 #light
 for mod in sys.argv[3].split('|'):
@@ -61,8 +60,16 @@ for mod in sys.argv[3].split('|'):
         mod_mass = float(elems[1])
         tag = elems[2]
         L_labels.append((AA, mod_mass, tag))
-#heavy
+#medium
 for mod in sys.argv[4].split('|'):
+    elems = mod.split(':')
+    if len(elems) == 3:
+        AA = elems[0]
+        mod_mass = float(elems[1])
+        tag = elems[2]
+        M_labels.append((AA, mod_mass, tag))
+#heavy
+for mod in sys.argv[5].split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         AA = elems[0]
@@ -70,7 +77,7 @@ for mod in sys.argv[4].split('|'):
         tag = elems[2]
         H_labels.append((AA, mod_mass, tag))
 #normal
-for mod in sys.argv[5].split('|'):
+for mod in sys.argv[6].split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         AA = elems[0]
@@ -83,14 +90,16 @@ for mod in sys.argv[5].split('|'):
 
 print "quant labels"
 print L_labels
+print M_labels
 print H_labels
 print "normal labels"
 print norm_labels
 print norm_nterm_labels
 
 pepxml_dir = {}
-pepxml_dir["light"] = sys.argv[6]
-pepxml_dir["heavy"] = sys.argv[7]
+pepxml_dir["light"] = sys.argv[7]
+pepxml_dir["medium"] = sys.argv[8]
+pepxml_dir["heavy"] = sys.argv[9]
 
 def mark_seq(uAA, seq, dAA, markers):
     ans = ""
@@ -110,13 +119,21 @@ def mark_seq(uAA, seq, dAA, markers):
 
 print "Parsing pepXML files..."
 print 
-for tag in [ "light", "heavy" ]:
+for tag in [ "light", "medium", "heavy" ]:
     #build mod list
     std_AA = [] #mark AA that's modified but not marked (SILAC)
     mod_list = []
     nterm_labels = []
     if tag == "light":
         for m in L_labels:
+            if m[1] < mass_tol and m[2]=="-": #??
+                std_AA.append(m[0])
+            elif m[0][0]=="n":
+                nterm_labels.append(m)
+            else:
+                mod_list.append(m)
+    elif tag =="medium":
+        for m in M_labels:
             if m[1] < mass_tol and m[2]=="-": #??
                 std_AA.append(m[0])
             elif m[0][0]=="n":
@@ -154,11 +171,10 @@ for tag in [ "light", "heavy" ]:
         elems = l.strip().split('\t')
         
         pro = elems[tags["Protein"]]
-        #disc = elems[tags["Protein Description"]].strip()
+        disc = elems[tags["Protein Description"]].strip()
         full_seq = db_seq[pro]
         seq = elems[tags["Peptide"]]
-        #if not disc_db.has_key(pro):
-        #    disc_db[pro] = disc
+        pro = pro + "\t" + disc
         #locate
         loc = full_seq.find(seq)
         #print pro, seq, loc
@@ -243,7 +259,7 @@ for tag in [ "light", "heavy" ]:
             else:
                 ipi_lst[pro] = ipi_lst[pro]+1
             gene = pro.split()[0].split('|')[1]
-            #if pro[:4] == "rev_": gene = "rev_" + gene
+            if pro[:7] == "Reverse": gene = "Reverse_" + gene
             print "seq:", seq
             print "marks:", markers
             all_seq = mark_seq(uAA, seq, dAA, markers)
@@ -280,12 +296,35 @@ out_ipi_lst = [ p for p in ipi_lst.keys() if ipi_lst[p]>=1 ]
 
 out_uni_lst = []
 for pro in out_ipi_lst:
-    disc = disc_db[pro]
-    ipi = pro.split('|')[1]
+    #skip rev decoys ?
+    #elems = pro.split('|')
+    #ipi = elems[1] #uniprot actually
+    #disc = elems[2]
+    #tmp = disc.split()
+    #gene = tmp[0]
+    #disc = disc[len(gene)+1:]
+    #symbol = get_symbol(disc)
+    elems = pro.split('\t')
+    disc = elems[1]
+    ipi = elems[0].split('|')[1]
     out_uni_lst.append(ipi)
-    symbol = get_symbol(disc)
-    if symbol == "NULL":
-      symbol = pro.split('|')[2]
+    if elems[0][:7] == "Reverse":
+        ipi = "Reverse_" + ipi
+    #disc = disc.split("[REVIEWED]")[0]
+    #label = disc.find("[NOT_REVIEWED]")
+    label = elems[0].split('|')[2]
+    symbol = elems[0].split('|')[2]
+    #if label>0:
+    #     disc = disc[:label]
+    #elems = disc.split()
+    #disc = ""
+    #for elem in elems:
+    #  if "=" in elem: break
+    #  disc = disc + " " + elem
+    #disc = disc[:min(60,len(disc))]
+    #disc = disc.replace("'", "")
+    #ipiout.write(pro)
+    #ipiout.write("\n")
     ipiout.write(ipi)
     ipiout.write("\t")
     ipiout.write(symbol)

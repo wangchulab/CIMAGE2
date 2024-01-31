@@ -1,9 +1,9 @@
 !!! light chemical composition table !!!
-light.chem.table = /path/of/light.IA_tev_dimethyl.table.txt
+light.chem.table = /path/of/light.IA_acid_dimethyl.table.txt
 !!! medium chemical composition table !!!
-medium.chem.table = /path/of/medium.IA_tev_dimethyl.table.txt
+medium.chem.table = /path/of/medium.IA_acid_dimethyl.table.txt
 !!! heavy chemical composition table !!!
-heavy.chem.table = /path/of/heavy.IA_tev_dimethyl.table.txt
+heavy.chem.table = /path/of/heavy.IA_acid_dimethyl.table.txt
 !!! N15 enrichment percentage !!!
 N15.enrichment = 1.0
 !!! MS1 chromatogram ppm resolution !!!
