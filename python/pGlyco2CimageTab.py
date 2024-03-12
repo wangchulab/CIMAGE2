@@ -2,6 +2,23 @@ import sys, os
 from math import log
 from Bio import SeqIO
 from collections import defaultdict
+import argparse
+
+parser = argparse.ArgumentParser(description = 'Generate CIMAGE table/params for glycos')
+parser.add_argument('-f', '--fasta', type=str, default="../UP000005640_9606.fasta",  help='fasta')
+parser.add_argument('-g', '--glycan', type=str, default="../Glycan.txt", help='glycans')
+parser.add_argument('-t', '--title', type=str, default="Glycan(H,N,A,F,", help='title')
+#label = es[tags["Glycan(H,N,A,G,F," + current_label + ")"]]
+#label = es[tags["Glycan(H,N,F,A,G," + current_label + ")"]]
+parser.add_argument('-lm', '--light_mods', type=str, default="LPG:0:*", help='light modifications')
+parser.add_argument('-hm', '--heavy_mods', type=str, default="HPG:0:*", help='heavy modifications')
+parser.add_argument('-nm', '--normal_mods', type=str, default="Oxidation[M]:0:#|Carbamidomethyl[C]:0:-", help='normal modifications')
+parser.add_argument('-ld', '--light_dir', type=str, default="", required=True, help='light directory')
+parser.add_argument('-hd', '--heavy_dir', type=str, default="", required=True, help='heavy directory')
+
+parser.add_argument('-e', '--etd', action='store_true', help='check ETD or not')
+
+args = parser.parse_args()
 
 map_atom_mass = {
     "C"  : 12.0,
@@ -15,8 +32,9 @@ map_atom_mass = {
     "H2" : 2.014102
 }
 
+#load atoms of each unit
 glc_DB = {}
-dbfn = "../Glycan.txt"
+dbfn = args.glycan
 lines = open(dbfn, 'r').readlines()
 for l in lines:
     es = l.strip().split()
@@ -30,15 +48,18 @@ for l in lines:
         glc_DB[name][atm] = n
 #print glc_DB
 
+#map id->sequence, id->description
 seq_DB = {}
 des_DB = {}
-for record in SeqIO.parse("../UP000005640_9606.fasta", "fasta"):
+#for record in SeqIO.parse("../rat.fasta", "fasta"):
+for record in SeqIO.parse(args.fasta, "fasta"):
     if record.id[:8] == "Reverse": continue
     pro = record.id
     seq_DB[pro] = record.seq
     des_DB[pro] = record.description
 #print seq_DB.keys()
 
+#template of light and heavy table
 tab_DB = defaultdict(list)
 lines = open("../tab.tmpl", 'r').readlines()
 for l in lines:
@@ -62,7 +83,7 @@ H_labels = []
 norm_labels = {}
 glc_label = {}
 #light
-for mod in sys.argv[1].split('|'):
+for mod in args.light_mods.split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         mod_label = elems[0]
@@ -71,7 +92,7 @@ for mod in sys.argv[1].split('|'):
         L_labels.append((mod_label, mod_mass, tag))
         glc_label["light"] = mod_label
 #heavy
-for mod in sys.argv[2].split('|'):
+for mod in args.heavy_mods.split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         mod_label = elems[0]
@@ -80,7 +101,7 @@ for mod in sys.argv[2].split('|'):
         L_labels.append((mod_label, mod_mass, tag))
         glc_label["heavy"] = mod_label
 #normal
-for mod in sys.argv[3].split('|'):
+for mod in args.normal_mods.split('|'):
     elems = mod.split(':')
     if len(elems) == 3:
         mod_label = elems[0]
@@ -103,14 +124,18 @@ def mark_seq(uAA, seq, dAA, markers):
         ans = ans + seq[prev:] + "." + dAA
     return ans
 
-#for each glc
+#for each glc type
 ipi_lst = defaultdict(lambda: defaultdict(None))
 scan_lst = defaultdict(list)
 cross_tab = defaultdict(lambda: defaultdict(list))
 
+#save rt and sites info
+rt_fp = open("scan_rt_glyco_sites.txt", 'w')
+
+map_label = {}
 fn = {}
-fn['light'] = sys.argv[4]+"/pGlycoDB-GP-FDR-Pro-Quant-Site.txt"
-fn['heavy'] = sys.argv[5]+"/pGlycoDB-GP-FDR-Pro-Quant-Site.txt"
+fn['light'] = args.light_dir+"/pGlycoDB-GP-FDR-Pro-Quant-Site.txt"
+fn['heavy'] = args.heavy_dir+"/pGlycoDB-GP-FDR-Pro-Quant-Site.txt"
 for tag in ["light", "heavy"]:
     lines = open(fn[tag], 'r').readlines()
     tags= {}
@@ -135,20 +160,30 @@ for tag in ["light", "heavy"]:
         mods = es[tags["Mod"]]
         glc_site = int(es[tags["GlySite"]])
         current_label = glc_label[tag]
-        label = es[tags["Glycan(H,N,A,F," + current_label + ")"]]
+        label = es[tags[args.title + current_label + ")"]]
+        better_label = ".".join(label.split(' '))
         label = "".join(label.split(' '))
+        map_label[label] = better_label
         pep_mass = float(es[tags["PeptideMH"]])
         glc_mass = float(es[tags["GlyMass"]])
         tot_fdr = float(es[tags["TotalFDR"]])+1e-20
         tot_mass = pep_mass + glc_mass
         rt = float(es[tags["RT"]])
+        #ETD info
+        ETDscan = int(es[tags["ETDScan"]])
+        #sites info
+        sites_info = es[tags["LocalizedSiteGroups"]]
 
+        #file name and index
         ts = raw_fn.split('_')
         com_fn = "_".join(ts[:-1])
         fn_ndx = ts[-1]
 
         #quick check
+        #1. LH labeled or not
         if label[-1] == "0": continue
+        #2. check ETD or not
+        if args.etd and ETDscan <= 0: continue
 
         #normal
         markers = []
@@ -176,6 +211,11 @@ for tag in ["light", "heavy"]:
         cross_tab[label][scan_key].append((tot_mass, scan_id, -log(tot_fdr)))
         #print pro, ipi, uAA, pep_seq, dAA, loc, markers, all_seq
 
+        #save rt and sites
+        rt_fp.write("%6.4f\t%s\t%s\t%s\n" % (rt, scan_id, sites_info, tag))
+
+rt_fp.close()
+
 def get_mass( atomN ):
     mass = 0.0
     for a in atomN.keys():
@@ -191,7 +231,7 @@ def gen_glc_atom( name, glc, tag ):
             counts[k] += glc[g][k] * n
     for k in glc[name].keys():
         counts[k] += glc[name][k] * int(tag[-1])
-    print name, tag, get_mass(counts)
+    #print name, tag, get_mass(counts)
     return ('*', zip(counts.keys(), counts.values()))
 
 def get_str( marker ):
@@ -202,6 +242,7 @@ def get_str( marker ):
     return str_mod+":"+":".join(tmp)
 
 for g in ipi_lst.keys():
+    print "G:", g, map_label[g]
     # generate dir
     try:
         os.makedirs(g)
