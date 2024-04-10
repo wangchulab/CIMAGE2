@@ -53,6 +53,7 @@ def load_cimage(fn):
   return
 
 def load_pfind(fn):
+  print "Loading from pFind all_result"
   lines = open(fn, 'r').readlines()
   t = {}
   nm = 0
@@ -82,15 +83,32 @@ def load_pfind(fn):
   return
 
 def load_msfragger(fn):
-  assert(0)
-  print "Loading from MSFragger peptide.tsv"
+  print "Loading from MSFragger peptide.tsv(Ionquant TBD)"
   lines = open(fn, 'r').readlines()
-  for l in lines:
+  t = {}
+  nm = 0
+  for n,tag in enumerate(lines[0].strip().split('\t')):
+    t[tag] = n
+  for l in lines[1:]:
     es = l.split('\t')
-    pro = "pro"
-    pep = "XXX"
-    R = 1.0
-    yield (pro, pep, R)
+    pro = es[t["Protein ID"]]
+    pep_raw = es[t["Peptide"]]
+    R = 0.0
+    mods = es[t["Assigned Modifications"]]
+    for mod in mods.split(','):
+      mod = mod.strip()
+      if len(mod)<3: continue
+      tmp = mod.split('(')
+      try:
+        loc = int(tmp[0][:-1])
+      except:
+        loc = 0
+      mod = tmp[0][-1]+"("+tmp[1]
+      for l in map_mark.keys():
+        marker = map_mark[l]
+        if mod == l:
+          pep = pep_raw[:loc+nm]+marker+pep_raw[loc+nm:]
+          yield (pro, pep, R)
   return
 
 def extract_motif_pos(pro, pep):
@@ -151,9 +169,9 @@ elif fn[-4:] == ".txt":
       print pro, motif, pos, R
 elif fn[-4:] == ".tsv":
   #msfragger results
-  #for (pro, pep, R) in load_msfragger(fn):
-  #  break
-  print "MSF to be done"
+  for (pro, pep, R) in load_msfragger(fn):
+    for motif, pos in extract_motif_pos(pro, pep):
+      print pro, motif, pos, R
 else:
   print "Wrong input file!"
 
