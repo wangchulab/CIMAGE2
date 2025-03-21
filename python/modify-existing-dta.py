@@ -1,5 +1,5 @@
 from config import CLIENT_DIST_PATH
-from BeautifulSoup import BeautifulSoup
+#from BeautifulSoup import BeautifulSoup
 from bs4 import BeautifulSoup
 from shutil import copyfile
 from argparse import ArgumentParser, REMAINDER
@@ -83,7 +83,7 @@ def get_file_contents(file_name):
         return raw_file.read()
 
 def write_new(file_name, contents):
-    with open(file_name, 'wb') as f:
+    with open(file_name, 'w', encoding='utf-8') as f:
         f.write(contents)
 
 def parse_arguments():

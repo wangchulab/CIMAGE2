@@ -19,8 +19,10 @@ for line in lines[1:]:
   diffm.append(float(es[t["Delta Mass"]]))
 
 #tags
-nAA = 21
-tags = "ACDEFGHIKLMNPQRSTUVWY"
+#nAA = 21
+#tags = "ACDEFGHIKLMNPQRSTUVWY"
+nAA = 27
+tags = "ACDEFGHIKLMNPQRSTUVWYBJOUXZ"
 pos = {}
 for i in range(nAA):
   pos[tags[i]] = i
@@ -54,9 +56,9 @@ for fn in sys.argv[2:]:
 
 sortm = sorted(diffm)
 ndat = len(sortm)
-nmid = 4
+nmid = 5
 nwin = 9
-dtol = 0.02
+dtol = 0.05
 
 def get_loc( query_mass ):
   this_loc_AA = np.zeros([nAA])

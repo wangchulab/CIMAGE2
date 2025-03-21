@@ -30,6 +30,12 @@ mass_norm_AA = {
 "R" :156.10111,
 "Y" :163.06333,
 "W" :186.07931,
+"B" :0.0,
+"J" :0.0,
+"O" :237.14773,
+"U" :150.95363,
+"X" :0.0,
+"Z" :0.0,
 "n" :1.0078
 }
 
@@ -37,6 +43,7 @@ L_labels = []
 H_labels = []
 norm_labels = []
 norm_nterm_labels = []
+norm_cterm_labels = []
 
 ipi_lst = defaultdict(None)
 scan_lst = []
@@ -78,6 +85,8 @@ for mod in sys.argv[5].split('|'):
         tag = elems[2]
         if AA[0] == "n":
             norm_nterm_labels.append((AA, mod_mass, tag))
+        elif AA[0] == "c":
+            norm_cterm_labels.append((AA, mod_mass, tag))
         else:
             norm_labels.append((AA, mod_mass, tag))
 
@@ -87,6 +96,7 @@ print H_labels
 print "normal labels"
 print norm_labels
 print norm_nterm_labels
+print norm_cterm_labels
 
 pepxml_dir = {}
 pepxml_dir["light"] = sys.argv[6]
@@ -115,6 +125,7 @@ for tag in [ "light", "heavy" ]:
     std_AA = [] #mark AA that's modified but not marked (SILAC)
     mod_list = []
     nterm_labels = []
+    cterm_labels = []
     if tag == "light":
         for m in L_labels:
             if m[1] < mass_tol and m[2]=="-": #??
@@ -139,6 +150,8 @@ for tag in [ "light", "heavy" ]:
     print mod_list
     print "nter labels"
     print nterm_labels
+    print "cter labels"
+    print cterm_labels
     print "others"
     print std_AA
 
@@ -204,7 +217,7 @@ for tag in [ "light", "heavy" ]:
             tmps = assigned_mod[:-1].split('(')
             posA = tmps[0].strip()
             print "DB:", assigned_mod, posA
-            if posA != "N-term":
+            if posA != "N-term" and posA != "C-term":
                 mod_mass = float(tmps[1])
                 ndx = int(posA[:-1])-1
                 ideal_mass = mass_norm_AA[seq[ndx]]
@@ -219,7 +232,7 @@ for tag in [ "light", "heavy" ]:
                 for m in norm_labels:
                     if m[0] == seq[ndx] and fabs(diff_mass-m[1]) <= mass_tol: #AA
                         if m[2]!="-": markers.append((m[2], ndx))
-            else:
+            elif posA == "N-term":
                 #check nterm
                 mod_nterm_mass = float(tmps[1])
                 diff_mass = mod_nterm_mass
@@ -227,6 +240,14 @@ for tag in [ "light", "heavy" ]:
                     if m[0] == 'n' and fabs(diff_mass-m[1]) <= mass_tol: #nter
                         current_label = tag
                         nterm_marker = m[2]
+            elif posA == "C-term":
+                #check cterm
+                mod_cterm_mass = float(tmps[1])
+                diff_mass = mod_cterm_mass
+                for m in cterm_labels:
+                    if m[0] == 'c' and fabs(diff_mass-m[1]) <= mass_tol: #cter
+                        current_label = tag
+                        cterm_marker = m[2]
 
         #after check
         if current_label == None and len(std_AA)>0:

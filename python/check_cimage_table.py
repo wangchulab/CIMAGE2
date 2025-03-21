@@ -12,9 +12,9 @@ scr_path = os.path.split(os.path.realpath(__file__))[0]
 
 map_tag = {}
 lines = open(scr_path+"/light.default.table.txt", 'r').readlines()
-lines = clean_header(lines)
+lines = clean_header(lines) #ignore comment
 for n, tag in enumerate(lines[0].split()):
-  map_tag[n] = tag
+  map_tag[n] = tag.strip()
 
 map_ref_mass = {}
 for l in lines[1:]:
@@ -27,6 +27,9 @@ for l in lines[1:]:
 
 lines = open(sys.argv[1], 'r').readlines()
 lines = clean_header(lines)
+for n, tag in enumerate(lines[0].split()):
+  map_tag[n] = tag.strip()
+
 for l in lines[1:]:
   es = l.strip().split('\t')
   name = es[0]
