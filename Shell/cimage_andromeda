@@ -42,7 +42,7 @@ echo Creating input files for xcms
 echo $mod_symbol
 echo $csv
 ## create ipi number to protein name map
-R --vanilla --args $mod_symbol $csv  <  /home/jinjun/jinjun_git/R/findMs1AcrossSetsFromAndromeda.R > findMs1AcrossSetsFromAndromeda.Rout
+R --vanilla --args $mod_symbol $csv  <  $CIMAGE_PATH/R/findMs1AcrossSetsFromAndromeda.R > findMs1AcrossSetsFromAndromeda.Rout
 
 # filter by my_list.txt
 mylist=$(\ls my_list.txt 2> /dev/null | wc -l)
