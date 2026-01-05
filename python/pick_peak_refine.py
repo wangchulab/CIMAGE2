@@ -2,8 +2,22 @@
 import sys
 from math import fabs
 import numpy as np
-from scipy.stats import hypergeom as hg
-from scipy.stats import zscore
+#from scipy.stats import hypergeom as hg
+#from scipy.stats import zscore
+
+def safe_zscore(values, min_samples=3):
+    if len(values) < min_samples:
+        return [0.0] * len(values)
+    
+    arr = np.array(values, dtype=np.float64)
+    mean_val = np.mean(arr)
+    std_val = np.std(arr, ddof=1)
+    
+    if std_val < 1e-10:
+        return [0.0] * len(values)
+    
+    zsc = (arr - mean_val) / std_val
+    return zsc.tolist()
 
 diffm = []
 if len(sys.argv) >= 2:
@@ -77,8 +91,8 @@ def get_loc( query_mass ):
   #print all_loc_AA
   #print all_AA
   vals = []
-  sum_all = np.sum(all_AA)
-  sum_loc = np.sum(this_AA)
+  sum_all = np.sum(all_AA)+1
+  sum_loc = np.sum(this_AA)+1
   for i in range(nAA):
     c = tags[i]
     hit = this_loc_AA[i]
@@ -127,8 +141,13 @@ while ps < ndat and pe < ndat:
       print "%.4f" % dmid, pe - ps
     else:
       vals = get_loc( dmid )
-      zsc = zscore([v[1] for v in vals])
+      tmp = [v[1] for v in vals]
+      #if len(tmp) > 3:
+      #  zsc = zscore(tmp, nan_policy='omit')
+      #else:
+      #  zsc = [0]*len(tmp)
       #print zsc
+      zsc = safe_zscore(tmp)
       output_str = "%.4f %d" % (dmid, pe-ps+1)
       for i, val in enumerate(vals):
         if i < 1 or zsc[i] > 1.2:

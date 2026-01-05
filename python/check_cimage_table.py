@@ -39,5 +39,5 @@ for l in lines[1:]:
   ref_mass = map_ref_mass[name]
   dm = mass - ref_mass
   if fabs(dm) > 0.01:
-    print name, dm
+    print(f"{name} {dm:.6f}")
 
