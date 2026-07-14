@@ -45,7 +45,7 @@ norm_labels = []
 norm_nterm_labels = []
 norm_cterm_labels = []
 
-ipi_lst = defaultdict(None)
+ipi_lst = {}
 scan_lst = []
 cross_tab = defaultdict(list)
 
@@ -90,13 +90,13 @@ for mod in sys.argv[5].split('|'):
         else:
             norm_labels.append((AA, mod_mass, tag))
 
-print "quant labels"
-print L_labels
-print H_labels
-print "normal labels"
-print norm_labels
-print norm_nterm_labels
-print norm_cterm_labels
+print("quant labels")
+print(L_labels)
+print(H_labels)
+print("normal labels")
+print(norm_labels)
+print(norm_nterm_labels)
+print(norm_cterm_labels)
 
 pepxml_dir = {}
 pepxml_dir["light"] = sys.argv[6]
@@ -114,12 +114,12 @@ def mark_seq(uAA, seq, dAA, markers):
         for marker, ndx in markers:
             ans = ans + seq[prev:ndx+1] + marker
             prev = ndx + 1
-            print ans, prev
+            print(ans, prev)
         ans = ans + seq[prev:] + "." + dAA
     return ans
 
-print "Parsing pepXML files..."
-print 
+print("Parsing pepXML files...")
+print()
 for tag in [ "light", "heavy" ]:
     #build mod list
     std_AA = [] #mark AA that's modified but not marked (SILAC)
@@ -143,21 +143,21 @@ for tag in [ "light", "heavy" ]:
             else:
                 mod_list.append(m)
     else:
-        print "Warning tag error!"
+        print("Warning tag error!")
         break
-    print "## ", tag
-    print "mod list"
-    print mod_list
-    print "nter labels"
-    print nterm_labels
-    print "cter labels"
-    print cterm_labels
-    print "others"
-    print std_AA
+    print("## " + tag)
+    print("mod list")
+    print(mod_list)
+    print("nter labels")
+    print(nterm_labels)
+    print("cter labels")
+    print(cterm_labels)
+    print("others")
+    print(std_AA)
 
-    print "Loading ..."
+    print("Loading ...")
     fn = pepxml_dir[tag]+"/psm.tsv"
-    print fn
+    print(fn)
     lines = open(fn, 'r').readlines()
     elems = lines[0].strip().split('\t')
     tags = {}
@@ -180,7 +180,7 @@ for tag in [ "light", "heavy" ]:
         dAA = '-'
         if loc > 0: uAA = full_seq[loc-1]
         if loc + len(seq) < len(full_seq): dAA = full_seq[loc+len(seq)]
-        print uAA +'.'+seq+'.'+dAA
+        print(uAA +'.'+seq+'.'+dAA)
         #assert(0)
 
         spects = elems[tags["Spectrum"]].split('.')
@@ -212,11 +212,11 @@ for tag in [ "light", "heavy" ]:
             mods = [m.strip() for m in mods.split(',')]
         else:
             mods = []
-        print mods
+        print(mods)
         for assigned_mod in mods:
             tmps = assigned_mod[:-1].split('(')
             posA = tmps[0].strip()
-            print "DB:", assigned_mod, posA
+            print("DB:", assigned_mod, posA)
             if posA != "N-term" and posA != "C-term":
                 mod_mass = float(tmps[1])
                 ndx = int(posA[:-1])-1
@@ -265,16 +265,16 @@ for tag in [ "light", "heavy" ]:
                 ipi_lst[pro] = ipi_lst[pro]+1
             gene = pro.split()[0].split('|')[1]
             #if pro[:4] == "rev_": gene = "rev_" + gene
-            print "seq:", seq
-            print "marks:", markers
+            print("seq:", seq)
+            print("marks:", markers)
             all_seq = mark_seq(uAA, seq, dAA, markers)
-            print "result:", all_seq
+            print("result:", all_seq)
             if nterm_marker!="-":
                 all_seq = all_seq[:2] + nterm_marker + all_seq[2:]
             scan_key = gene + ":" + all_seq + ":" + str(charge) + ":" + fn_ndx
             scan_lst.append(scan_key + " " + com_fn + " " + str(scan_id) + " " + current_label + "\n")
             cross_tab[scan_key].append((mass, scan_id, score))
-    print "Done!"
+    print("Done!")
     print
 
 #output
@@ -290,7 +290,7 @@ def get_symbol(disc):
     gene = elems[0]
   else:
     gene = "NULL"
-    print disc
+    print(disc)
   return gene
 
 #save ipi_name.table

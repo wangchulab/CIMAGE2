@@ -7,8 +7,8 @@ import os, sys
 fn = sys.argv[1]
 #key_lst = []
 
-handle = open( fn, "rU" )
-full_handle = open( "full_"+fn, "w" )
+handle = open( fn, "r" )
+full_handle = open( "full_" + os.path.basename(fn), "w" )
 for record in SeqIO.parse(handle, "fasta"):
     #if record.id in key_lst: continue
     #key_lst.append(record.id)
