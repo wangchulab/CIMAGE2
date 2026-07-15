@@ -167,11 +167,23 @@ for ( i in 1:npages) {
   elements.count <- calc.num.elements(peptide, light.chem.table)
   predicted.dist <- isotope.dist(elements.count)
   i.max <- which.max(predicted.dist)
-  mass <- mono.mass + (i.max - 1)*isotope.mass.unit
+  ## The monoisotopic peak is NOT always at index 1. When the light chem table
+  ## itself contains heavy isotopes (C13/N15/H2/O18), isotope.dist() convolves
+  ## in a delta that shifts the whole envelope to the right, so predicted.dist
+  ## has leading zeros and the monoisotopic peak (== mono.mass) sits at the
+  ## first non-zero index. Measure the most-abundant offset from that peak, not
+  ## from index 1 -- otherwise the mass is over-counted by isotope.mass.unit per
+  ## heavy-isotope atom in the light label. This makes the light label follow the
+  ## same logic the heavy label already gets (its offset is inherited from here).
+  i.mono <- which(predicted.dist > 0)[1]
+  mass <- mono.mass + (i.max - i.mono)*isotope.mass.unit
   mono.mass.heavy <- calc.peptide.mass( peptide, heavy.aa.mass)
   mass.heavy <- mono.mass.heavy + mass - mono.mass
   elements.count.heavy <- calc.num.elements(peptide, heavy.chem.table)
   predicted.dist.heavy <- isotope.dist(elements.count.heavy,N15.enrichment)
+  ## first non-zero (monoisotopic) index of the heavy envelope, for leading-zero-safe
+  ## slicing below (equals mass.shift+1 in the normal orientation, so this is a no-op)
+  i.mono.heavy <- which(predicted.dist.heavy > 0)[1]
   ## mass delta between light and heavy
   mass.shift <- sum((elements.count.heavy-elements.count)[c("N15","H2","C13")])
   correction.factor <- predicted.dist[i.max]/predicted.dist.heavy[i.max+mass.shift]
@@ -342,15 +354,20 @@ for ( i in 1:npages) {
         peak.scan.num <- raw.ECI.light[[1]][yes][which.max(light.yes)]
         if ( mass.shift > 0 ) {
           peak.scan <- getScan(xfile, peak.scan.num, mzrange=c((mono.mass-2)/charge, mz.heavy) )
+        } else if ( mass.shift < 0 ) {
+          ## swapped light/heavy tables: heavy is lighter, so mz.heavy < mono.mass and
+          ## the original c(lower, mz.heavy) range would be inverted. Cover the light
+          ## isotope envelope explicitly instead.
+          peak.scan <- getScan(xfile, peak.scan.num, mzrange=c((mono.mass-2)/charge, mz.light+5/charge) )
         } else {
           peak.scan <- getScan(xfile, peak.scan.num, mzrange=c((mono.mass-2)/charge, mz.heavy+5) )
         }
         #checkChargeAndMonoMass takes the predicted.dist and the peak.scan as the input, 
 		#output the correlation factor between the predicted distribution and the experimental distribution
-        mono.check <- checkChargeAndMonoMass( peak.scan, mono.mass, charge, mz.ppm.cut, predicted.dist)
+        mono.check <- checkChargeAndMonoMass( peak.scan, mono.mass, charge, mz.ppm.cut, predicted.dist[i.mono:length(predicted.dist)])
 		peak.scan.num.heavy <- raw.ECI.heavy[[1]][yes][which.max(heavy.yes)]
         peak.scan.heavy <- getScan(xfile, peak.scan.num.heavy, mzrange=c((mono.mass.heavy-2)/charge, mz.heavy+5) )
-		mono.check.heavy <- checkChargeAndMonoMass( peak.scan.heavy, mono.mass.heavy, charge, mz.ppm.cut, predicted.dist.heavy[(mass.shift+1):length(predicted.dist.heavy)])
+		mono.check.heavy <- checkChargeAndMonoMass( peak.scan.heavy, mono.mass.heavy, charge, mz.ppm.cut, predicted.dist.heavy[i.mono.heavy:length(predicted.dist.heavy)])
 		mono.check <- max(mono.check, mono.check.heavy)
 		if (mono.check == mono.check.heavy) {
 		  peak.scan <- peak.scan.heavy
@@ -565,6 +582,11 @@ for ( i in 1:npages) {
       ## plot raw spectrum
       ##predicted.dist <- predicted.dist[1:20]
       ## upper limit: heavy + 20units ##
+      ## Guard the isotope-envelope subplot: its m/z bookkeeping assumes the heavy
+      ## label is heavier (mass.shift>0). With swapped light/heavy tables mass.shift<0
+      ## and this drawing code can error. The ratio is already recorded above, so on
+      ## error just draw a placeholder and keep the page. (No-op when mass.shift>0.)
+      tryCatch({
       cc <- seq(1,max(which(predicted.dist.heavy>0.01)))
 	  #get the merged predicted distribution for heavy and light
       if (HL.ratios[j]) {
@@ -642,6 +664,7 @@ for ( i in 1:npages) {
       title( paste("Scan # ", xfile@acquisitionNum[best.peak.scan.num], " @ ",
                    round(xfile@scantime[best.peak.scan.num]/60,1)," min; NL:",
                    formatC(int.max, digits=2,format="e"), sep = ""))
+      }, error=function(e) plot(0,0,xlab="",ylab="",main="isotope spectrum skipped (swapped tables)") )
     } else {
       # if ( (!is.na(tag.rt)) & (singleton.ratio>0) ) { # singleton peak identification requires a matching MS2 event
       #   if (HL.ratios[j]) {
