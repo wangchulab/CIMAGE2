@@ -7,4 +7,4 @@ python ../../../../../python/generate_cimage_table.py tab.txt
 cd ..
 done
 
-grep "G:" log.txt | awk '{print "cd", $2"; R --vanilla --args ../../cimage.params.PG.txt Lumos3_HomeMadeCol_ChenXing_LJL_Hela_PGHL_75um_50cm_360min_HCD30_EThcDSA35_20220106_F1 < ~/share/CIMAGE_Lite/R/findMs1AcrossSetsFromDTASelect_v2.R; cd .." }' > jobs.list
+grep "G:" log.txt | awk '{print "cd", $2"; R --vanilla --args ../../cimage.params.PG.txt Lumos3_HomeMadeCol_ChenXing_LJL_Hela_PGHL_75um_50cm_360min_HCD30_EThcDSA35_20220106_F1 < ~/share/CIMAGE_Lite/R/findMs1AcrossSetsFromDTASelect.R; cd .." }' > jobs.list

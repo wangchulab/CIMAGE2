@@ -37,7 +37,7 @@ dir.create(output.path)
 ## the table with protein names
 ipi.name.table <- read.table("ipi_name.table",sep="\t",header=T,comment.char="")
 ## the table with mass and scan number from DTASelect
-cross.table <- read.table("cross_scan.table", sep="\t",header=T, check.names=F,comment.char="")
+cross.table <- read.table("cross_scan.table", header=T, check.names=F,comment.char="")
 #cross.table[,"mass"] <- cross.table[,"mass"] + probe.mass
 split.table <- matrix(unlist(strsplit(as.character(cross.table[,"key"]),":")), byrow=T,ncol=4)
 dimnames(split.table)[[2]] <- c("ipi","peptide","charge","segment")
@@ -45,7 +45,7 @@ cross.table <- cbind(cross.table, split.table)
 uniq.ipi.peptides <- as.factor(paste(cross.table[,"ipi"], cross.table[,"peptide"],sep=":"))
 entry.levels <- levels( uniq.ipi.peptides )
 ## all_scan.table
-all.scan.table <- read.table("all_scan.table", sep="\t",header=T, as.is=T,comment.char="",colClasses=c("character","character","numeric","character"))
+all.scan.table <- read.table("all_scan.table", header=T, as.is=T,comment.char="",colClasses=c("character","character","numeric","character"))
 ## file name tags
 cross.vec <- as.character(args)
 print(args)
@@ -66,7 +66,13 @@ for ( arg in as.character(args) ) {
 if(TRUE){
 #if(FALSE){
 input.path <- getwd()
-mzXML.names <- list.files(path="../",pattern="mzXML$")
+## auto-detect raw file format: prefer mzML, fall back to mzXML if no mzML present
+ms.ext <- "mzML"
+mzXML.names <- list.files(path="../",pattern="mzML$")
+if ( length(mzXML.names) == 0 ) {
+  ms.ext <- "mzXML"
+  mzXML.names <- list.files(path="../",pattern="mzXML$")
+}
 mzXML.files <- as.list( mzXML.names )
 names(mzXML.files) <- mzXML.names
 for (name in mzXML.names) {
@@ -198,7 +204,7 @@ for ( i in 1:npages) {
   # do not know what it is for
   for ( k in 1:length(exist.index) ) {
     kk <- exist.index[k]
-    raw.file <- paste( cross.vec[kk], "_", segment,".mzXML",sep="")
+    raw.file <- paste( cross.vec[kk], "_", segment,".",ms.ext,sep="")
     xfile <- mzXML.files[[raw.file]]
     ms1.scan.num[k] <- which(xfile@acquisitionNum > as.integer(raw.scan.num[kk]))[1]-1
     if (is.na(ms1.scan.num[k])) {
@@ -211,7 +217,7 @@ for ( i in 1:npages) {
   #print(ncross)
   for ( j in 1:ncross ) {
     #print(mzXML.files)
-    raw.file <- paste( cross.vec[j], "_", segment,".mzXML",sep="")
+    raw.file <- paste( cross.vec[j], "_", segment,".",ms.ext,sep="")
 	#print(raw.file)
     xfile <- mzXML.files[[raw.file]]
 	#print(xfile)

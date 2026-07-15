@@ -67,7 +67,7 @@ The options are
 Run CIMAGE (it supports both mzXML or mzML)
 
 ```
-R --vanilla --args /path/of/IAtev/cimage.params.IAtev 20181026_1TO1 < /path/of/CIMAGE/R/findMs1AcrossSetsFromDTASelect_v2.R #for mzML
+R --vanilla --args /path/of/IAtev/cimage.params.IAtev 20181026_1TO1 < /path/of/CIMAGE/R/findMs1AcrossSetsFromDTASelect.R #auto-detects mzML or mzXML
 cd ..
 cimage_combine dta
 ```

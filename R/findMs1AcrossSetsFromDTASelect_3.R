@@ -69,7 +69,13 @@ for ( arg in as.character(args) ) {
 if(TRUE){
 #if(FALSE){
 input.path <- getwd()
-mzXML.names <- list.files(path="../",pattern="mzXML$")
+## auto-detect raw file format: prefer mzML, fall back to mzXML if no mzML present
+ms.ext <- "mzML"
+mzXML.names <- list.files(path="../",pattern="mzML$")
+if ( length(mzXML.names) == 0 ) {
+  ms.ext <- "mzXML"
+  mzXML.names <- list.files(path="../",pattern="mzXML$")
+}
 mzXML.files <- as.list( mzXML.names )
 names(mzXML.files) <- mzXML.names
 for (name in mzXML.names) {
@@ -204,7 +210,7 @@ for ( i in 1:npages) {
   # do not know what it is for
   for ( k in 1:length(exist.index) ) {
     kk <- exist.index[k]
-    raw.file <- paste( cross.vec[kk], "_", segment,".mzXML",sep="")
+    raw.file <- paste( cross.vec[kk], "_", segment,".",ms.ext,sep="")
     xfile <- mzXML.files[[raw.file]]
     ms1.scan.num[k] <- which(xfile@acquisitionNum > as.integer(raw.scan.num[kk]))[1]-1
     if (is.na(ms1.scan.num[k])) {
@@ -217,7 +223,7 @@ for ( i in 1:npages) {
   #print(ncross)
   for ( j in 1:ncross ) {
     #print(mzXML.files)
-    raw.file <- paste( cross.vec[j], "_", segment,".mzXML",sep="")
+    raw.file <- paste( cross.vec[j], "_", segment,".",ms.ext,sep="")
 	#print(raw.file)
     xfile <- mzXML.files[[raw.file]]
 	#print(xfile)
