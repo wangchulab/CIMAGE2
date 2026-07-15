@@ -15,9 +15,9 @@ quantification_type <- c("medium","heavy")
 ## initialize atom mass table
 atom.mass.vec <- init.atom.mass()
 ## initialize chemical composition table
-light.chem.table <- read.chem.table(params[["light.chem.table"]])
-medium.chem.table <- read.chem.table(params[["medium.chem.table"]])
-heavy.chem.table <- read.chem.table(params[["heavy.chem.table"]])
+light.chem.table <- read.chem.table(params[["light.chem.table"]], dirname(param.file))
+medium.chem.table <- read.chem.table(params[["medium.chem.table"]], dirname(param.file))
+heavy.chem.table <- read.chem.table(params[["heavy.chem.table"]], dirname(param.file))
 ## initialize amino acid mass table
 light.aa.mass <- init.aa.mass(atom.mass.vec, light.chem.table)
 medium.aa.mass <- init.aa.mass(atom.mass.vec, medium.chem.table)

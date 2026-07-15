@@ -16,7 +16,16 @@ read.input.params <- function( file.name ) {
   return(params)
 }
 
-read.chem.table <- function( table.name ) {
+read.chem.table <- function( table.name, fallback.dir=NULL ) {
+  ## If the path from the params file does not exist, look for a file of the same
+  ## name in the params file's own directory (fallback.dir). Backward compatible:
+  ## when fallback.dir is NULL the given path is used unchanged.
+  if ( !file.exists(table.name) && !is.null(fallback.dir) ) {
+    alt.name <- file.path(fallback.dir, basename(table.name))
+    if ( file.exists(alt.name) ) {
+      table.name <- alt.name
+    }
+  }
   orig.table <- read.table(table.name, header=T, sep="\t", comment.char="!")
   named.table <- orig.table[,2:ncol(orig.table)]
   rownames(named.table) <- orig.table[,1]
